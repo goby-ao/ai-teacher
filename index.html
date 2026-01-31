@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>生字大冒险 - 完美版</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@700;800&family=Nunito:wght@700;800;900&display=swap');
 
         :root {
             --bg-color: #F9FAFB;
@@ -20,44 +20,86 @@
             --card-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
         }
 
+        html,
         body {
-            background: linear-gradient(135deg, #E0F7FA 0%, #FFF9C4 25%, #FFEBEE 50%, #E1BEE7 75%, #C5E1A5 100%);
-            background-size: 400% 400%;
-            animation: gradient-shift 15s ease infinite;
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            overscroll-behavior: none;
+            /* 关键：禁止橡皮筋效果 */
+        }
+
+        body {
+            background: var(--bg-color);
             position: relative;
             font-family: "KaiTi", "STKaiti", "楷体", "Microsoft YaHei", sans-serif;
-            margin: 0;
-            min-height: 100vh;
-            overflow-y: auto;
-            overflow-x: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
-            padding-bottom: 40px;
         }
 
-        /* 可爱的云朵背景 */
-        body::before {
-            content: '';
+        /* 主容器：负责首页或地图的滚动 */
+        #game-container {
+            width: 100%;
+            height: 100dvh;
+            /* 动态视口高度 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        /* 游戏进行时，完全禁止滚动并让内容垂直居中 */
+        body.game-active #game-container {
+            overflow: hidden;
+            justify-content: center;
+            padding-bottom: 0;
+        }
+
+        /* 硬件加速背景层 */
+        #bg-canvas-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: fixed linear-gradient(135deg, rgba(224, 247, 250, 0.8) 0%, rgba(255, 249, 196, 0.8) 25%, rgba(255, 235, 238, 0.8) 50%, rgba(225, 190, 231, 0.8) 75%, rgba(197, 225, 165, 0.8) 100%);
+            background-size: 400% 400%;
+            animation: gradient-shift 20s ease infinite;
+            z-index: -2;
+            will-change: transform;
+            transform: translateZ(0);
+        }
+
+        /* 背景纹理层：优化为独立层并开启硬件加速 */
+        #bg-texture-layer {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             background-image:
-                radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.4) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.35) 0%, transparent 50%),
-                radial-gradient(circle at 90% 70%, rgba(255, 255, 255, 0.3) 0%, transparent 50%);
+                url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill-opacity='0.06'%3E%3Ctext x='10' y='25' font-size='16'%3E🌈%3C/text%3E%3Ctext x='60' y='45' font-size='14'%3E⭐%3C/text%3E%3Ctext x='20' y='80' font-size='12'%3E❤️%3C/text%3E%3Ctext x='75' y='85' font-size='16'%3E✨%3C/text%3E%3C/g%3E%3C/svg%3E"),
+                radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.6) 0%, transparent 40%),
+                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.5) 0%, transparent 40%),
+                radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.5) 0%, transparent 45%),
+                radial-gradient(circle at 90% 70%, rgba(255, 255, 255, 0.4) 0%, transparent 40%);
             pointer-events: none;
-            z-index: 0;
+            z-index: -1;
+            will-change: transform;
+            transform: translateZ(0);
         }
 
-        /* 可爱的装饰元素 */
-        body::after {
-            content: '⭐ 💫 ✨ 🌟 ⭐ 💖 🌈 ⭐ 💫 ✨ 🎈 ⭐ 🌸 💫 ⭐ 🦋 ✨ 💫 🌟 ⭐';
+        /* 装饰元素：同样优化透明度和层级 */
+        #bg-decoration-layer {
+            content: '';
             position: fixed;
             top: 0;
             left: 0;
@@ -69,13 +111,14 @@
             justify-content: space-around;
             align-items: flex-start;
             padding: 20px;
-            gap: 60px;
-            opacity: 0.15;
+            gap: 80px;
+            opacity: 0.1;
             pointer-events: none;
-            z-index: 0;
-            animation: float-decorations 20s ease-in-out infinite;
-            letter-spacing: 40px;
-            line-height: 100px;
+            z-index: -1;
+            letter-spacing: 50px;
+            line-height: 120px;
+            animation: float-decorations 25s ease-in-out infinite;
+            will-change: transform;
         }
 
         @keyframes float-decorations {
@@ -100,6 +143,7 @@
             z-index: 50;
         }
 
+
         /* 确保所有内容在背景之上 */
         .hud,
         #game-container,
@@ -115,13 +159,16 @@
             z-index: 100;
             width: 92%;
             max-width: 750px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.9);
+            /* 移动端降低滤镜复杂度 */
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             padding: 12px 16px;
             border-radius: 24px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.8);
             margin-bottom: 20px;
+            will-change: transform;
         }
 
         .hud-content {
@@ -236,7 +283,7 @@
             display: flex;
             align-items: center;
             gap: 5px;
-            transition: all 0.2s;
+            transition: all 0.1s;
             border: 1px solid transparent;
             white-space: nowrap;
         }
@@ -260,12 +307,17 @@
             cursor: pointer;
         }
 
-        /* --- 游戏区域 --- */
-        #game-container {
-            width: 100%;
-            display: flex;
-            justify-content: center;
+        /* --- 圆润饱满的数字展示 --- */
+        #timer-value,
+        .stat-num,
+        #result-time,
+        #result-best,
+        .home-stat-val {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+            letter-spacing: 0.5px;
         }
+
 
         #game-board {
             display: grid;
@@ -274,6 +326,8 @@
             width: 90%;
             max-width: 500px;
             cursor: default;
+            touch-action: manipulation;
+            /* 防止双击缩放和干扰滚动锁定 */
         }
 
         .grid-4 {
@@ -297,21 +351,27 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 2.2rem;
+            font-size: 2rem;
+            /* 基础字号 */
             position: relative;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             /* 更高级的 Q 弹过渡 */
+            overflow: hidden;
+            white-space: nowrap;
             animation: float 5s ease-in-out infinite;
 
             /* 基础阴影 */
             box-shadow: 0 8px 15px rgba(0, 0, 0, 0.03), inset 0 0 0 1px rgba(0, 0, 0, 0.03);
             user-select: none;
+            /* 开启硬件加速 */
+            will-change: transform;
+            transform: translateZ(0);
         }
 
         .bubble:active {
-            transform: scale(0.92);
-            /* 物理按压感 */
+            transform: scale(0.92) translateZ(0);
+            transition: transform 0.1s cubic-bezier(0, 0, 0.2, 1);
         }
 
         /* 瞬间点击动画：Q弹一下 */
@@ -384,26 +444,43 @@
 
         /* --- 样式区分：汉字 vs 拼音 --- */
 
-        /* 1. 汉字样式：纯白底，深色楷体，像书本 */
+        /* 1. 汉字样式：字号更大，纯黑色，绝对主角 */
         .bubble[data-type="char"] {
             background: #FFFFFF;
-            color: #2D3436;
+            color: #000000;
             font-family: "KaiTi", "STKaiti", "楷体", serif;
             font-weight: 900;
+            font-size: 3rem;
             border: 2px solid #fff;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.05);
         }
 
-        /* 2. 拼音样式：淡蓝灰底，现代黑体，像标签 */
+        /* 2. 拼音样式：晨曦蓝方案，通过颜色与汉字形成鲜明对比 */
         .bubble[data-type="pinyin"] {
-            background: #F1F5F9;
-            /* 极淡的冷灰色 */
-            color: #475569;
-            /* 蓝灰色文字 */
-            font-family: "Nunito", sans-serif;
-            font-weight: 800;
-            font-size: 1.6rem;
-            border: 2px solid #E2E8F0;
-            /* 淡淡的边框 */
+            background: #EEF2FF;
+            /* 极淡的靛蓝色背景 */
+            color: #6366F1;
+            /* 活泼的靛青色文字 */
+            font-family: "Lexend", sans-serif;
+            font-weight: 700;
+            font-size: 2rem;
+            /* 从 1.7rem 调大至 2rem */
+            letter-spacing: 0.5px;
+            border: 2px solid #E0E7FF;
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.05);
+            padding: 0 4px;
+        }
+
+        /* 针对长拼音（如 zhuān）自动调小字号 */
+        .bubble.long-txt {
+            font-size: 1.5rem !important;
+            letter-spacing: -0.5px;
+        }
+
+        /* 针对极长拼音（如 shuāng, chuáng）进一步调小 */
+        .bubble.extra-long-txt {
+            font-size: 1.3rem !important;
+            letter-spacing: -1px;
         }
 
         .bubble:hover {
@@ -423,6 +500,434 @@
             transform: translate3d(0, 0, 0);
             backface-visibility: hidden;
             perspective: 1000px;
+        }
+
+        /* --- 首页数据看板 (Home Dashboard Container) --- */
+        #home-dashboard {
+            width: 92%;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 30px 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            z-index: 10;
+            animation: dashboard-appear 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+            will-change: transform, opacity;
+        }
+
+        @keyframes dashboard-appear {
+            0% {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .home-welcome {
+            font-size: 1.15rem;
+            color: #333;
+            font-weight: 800;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .lvl-badge {
+            background: linear-gradient(135deg, #FF8BA7, #FF5C8D);
+            color: #fff;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-family: 'Lexend', sans-serif;
+            font-weight: 800;
+            box-shadow: 0 4px 10px rgba(255, 139, 167, 0.3);
+            display: inline-flex;
+            align-items: center;
+        }
+
+        /* --- 首页互动区 (Home Hero) --- */
+        .home-hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+
+        .pet-mascot {
+            font-size: 6rem;
+            filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.08));
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: pet-stroll 10s ease-in-out infinite;
+            transform-origin: bottom center;
+            z-index: 2;
+        }
+
+        /* 遛弯动画：合并左右走动和摇摆 */
+        @keyframes pet-stroll {
+
+            0%,
+            100% {
+                transform: translateX(-60px) rotate(-4deg);
+            }
+
+            25% {
+                transform: translateX(0) rotate(4deg) translateY(-2px);
+            }
+
+            50% {
+                transform: translateX(60px) rotate(-4deg);
+            }
+
+            75% {
+                transform: translateX(0) rotate(4deg) translateY(-2px);
+            }
+        }
+
+        /* 地面阴影 */
+        .pet-shadow {
+            width: 50px;
+            height: 10px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            margin-top: -10px;
+            filter: blur(4px);
+            animation: shadow-stroll 10s ease-in-out infinite;
+            transition: all 0.3s;
+        }
+
+        @keyframes shadow-stroll {
+
+            0%,
+            100% {
+                transform: translateX(-60px) scaleX(1);
+            }
+
+            25%,
+            75% {
+                transform: translateX(0) scaleX(1.1);
+            }
+
+            50% {
+                transform: translateX(60px) scaleX(1);
+            }
+        }
+
+        .pet-jump {
+            animation: pet-jump 0.5s cubic-bezier(0.455, 0.03, 0.515, 0.955) !important;
+        }
+
+        @keyframes pet-jump {
+
+            0%,
+            100% {
+                transform: scale(1) translateY(0);
+            }
+
+            40% {
+                transform: scale(1.1, 0.9) translateY(-50px);
+            }
+
+            60% {
+                transform: scale(0.9, 1.1) translateY(-20px);
+            }
+        }
+
+        /* 跳跃时阴影缩小 */
+        .home-hero:active .pet-shadow,
+        .pet-jumping-shadow {
+            transform: scale(0.5);
+            opacity: 0.3;
+        }
+
+        .speech-bubble {
+            position: absolute;
+            top: -40px;
+            background: white;
+            padding: 8px 15px;
+            border-radius: 18px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #555;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .speech-bubble.active {
+            opacity: 1;
+            transform: scale(1) translateY(-10px);
+        }
+
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid white;
+        }
+
+        .stats-toggle-btn {
+            background: transparent;
+            border: 1px solid #ddd;
+            color: #888;
+            font-size: 0.8rem;
+            padding: 6px 15px;
+            border-radius: 20px;
+            margin-top: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .stats-toggle-btn:hover {
+            background: #f0f0f0;
+            color: #555;
+        }
+
+        .home-stats-grid {
+            display: none;
+            /* 默认折叠 */
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            width: 100%;
+            margin-top: 20px;
+            animation: slide-down 0.4s ease-out;
+        }
+
+        .home-stats-grid.expanded {
+            display: grid;
+        }
+
+        @keyframes slide-down {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 原有的统计卡片样式保持不变，但容器逻辑已变 */
+        .home-stat-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 15px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.03);
+            transition: transform 0.3s ease;
+            border: 1px solid #F3F4F6;
+        }
+
+        .home-stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .home-stat-icon {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+
+        .home-stat-val {
+            font-family: 'Nunito', sans-serif;
+            font-weight: 900;
+            font-size: 1.3rem;
+            margin-bottom: 2px;
+            color: #333;
+        }
+
+        .home-stat-label {
+            font-size: 0.7rem;
+            color: #888;
+            font-weight: bold;
+        }
+
+        .card-pink {
+            background: linear-gradient(135deg, #FFF5F7, #FFE4E9);
+            border-color: #FFD1DC;
+        }
+
+        .card-blue {
+            background: linear-gradient(135deg, #F0F9FF, #E0F2FE);
+            border-color: #BAE6FD;
+        }
+
+        .card-yellow {
+            background: linear-gradient(135deg, #FFFBEB, #FEF3C7);
+            border-color: #FDE68A;
+        }
+
+        .card-green {
+            background: linear-gradient(135deg, #F0FDF4, #DCFCE7);
+            border-color: #BBF7D0;
+        }
+
+        .card-purple {
+            background: linear-gradient(135deg, #FAF5FF, #F3E8FF);
+            border-color: #E9D5FF;
+        }
+
+        .card-orange {
+            background: linear-gradient(135deg, #FFF7ED, #FFEDD5);
+            border-color: #FED7AA;
+        }
+
+        .big-map-btn {
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(135deg, #FF6B9D, #FF9B6B, #FFD93D);
+            background-size: 200% 200%;
+            animation: gradient-flow 5s ease infinite, btn-pulse 2s ease-in-out infinite;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            color: #fff;
+            cursor: pointer;
+            /* 3D 空间感阴影 */
+            box-shadow: 0 10px 0 #D6336C, 0 15px 35px rgba(255, 107, 157, 0.4);
+            border: none;
+            transition: all 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* 渐变流动 */
+        @keyframes gradient-flow {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* 呼吸跳动 */
+        @keyframes btn-pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.02);
+            }
+        }
+
+        /* 流光特效 */
+        .big-map-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: all 0.5s;
+            animation: btn-shimmer 3s infinite;
+        }
+
+        @keyframes btn-shimmer {
+            0% {
+                left: -100%;
+            }
+
+            30%,
+            100% {
+                left: 100%;
+            }
+        }
+
+        .big-map-btn:hover {
+            transform: scale(1.04) translateY(-2px);
+            box-shadow: 0 12px 0 #D6336C, 0 20px 45px rgba(255, 107, 157, 0.5);
+            filter: brightness(1.1);
+        }
+
+        /* 按下反馈 */
+        .big-map-btn:active {
+            transform: translateY(8px);
+            box-shadow: 0 2px 0 #D6336C, 0 5px 15px rgba(255, 107, 157, 0.3);
+            filter: brightness(0.9);
+        }
+
+        .big-map-btn .btn-icon {
+            font-size: 3rem;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+            animation: icon-float 2s ease-in-out infinite;
+        }
+
+        .big-map-btn .main-txt {
+            font-size: 1.8rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-shadow: 0 4px 8px rgba(180, 40, 90, 0.4);
+            display: block;
+        }
+
+        .big-map-btn .sub-txt {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            font-weight: 800;
+            display: block;
+            margin-top: 2px;
+        }
+
+        @keyframes icon-float {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-5px) rotate(5deg);
+            }
+        }
+
+        #game-board {
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            .home-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
         /* --- 弹窗样式 --- */
@@ -614,6 +1119,50 @@
             transform: scale(0.97);
         }
 
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .btn-secondary {
+            flex: 1;
+            background: #F1F3F5;
+            color: #495057;
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-secondary:active {
+            transform: scale(0.95);
+            background: #E9ECEF;
+        }
+
+        .btn-main {
+            flex: 1;
+            background: linear-gradient(135deg, #FF8BA7, #FF5C8D);
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(255, 139, 167, 0.3);
+            font-family: inherit;
+        }
+
+        .btn-main:active {
+            transform: scale(0.95);
+        }
+
         .read-btn {
             display: inline-flex;
             align-items: center;
@@ -644,6 +1193,26 @@
             50% {
                 transform: translateY(-4px)
             }
+        }
+
+        /* 红色呼吸灯动画 */
+        @keyframes pulse-red {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(255, 107, 107, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
+            }
+        }
+
+        .pulse-red {
+            animation: pulse-red 2s infinite;
+            border-color: #FF6B6B !important;
         }
 
         @keyframes shake-error {
@@ -695,30 +1264,84 @@
             }
         }
 
+        /* Boss Mode Styles */
+        body.boss-mode {
+            background-color: #2c0b0e !important;
+            background-image: linear-gradient(315deg, #2c0b0e 0%, #000000 74%) !important;
+        }
+
+        .boss-mode .card {
+            border: 4px solid #FF4757;
+            box-shadow: 0 0 20px rgba(255, 71, 87, 0.6);
+        }
+
+        .boss-mode .bubble {
+            border-color: #FF4757;
+            background: #fff0f0;
+        }
+
+        .boss-mode #timer-card {
+            animation: pulse-red 0.8s infinite;
+            background: #FF4757;
+            color: white;
+        }
+
+        .pulse-red {
+            animation: pulse-red 1.5s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 82, 82, 0.7);
+            }
+
+            70% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 10px rgba(255, 82, 82, 0);
+            }
+
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 82, 82, 0);
+            }
+        }
+
         #toast {
             position: fixed;
             bottom: 40px;
             left: 50%;
             transform: translateX(-50%) translateY(100px);
+            opacity: 0;
             background: #2D3436;
             color: white;
             padding: 12px 24px;
             border-radius: 30px;
             font-size: 0.9rem;
             z-index: 300;
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             display: flex;
             align-items: center;
             gap: 8px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+        }
+
+        #toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+            pointer-events: auto;
         }
     </style>
 </head>
 
 <body>
+    <div id="bg-canvas-layer"></div>
+    <div id="bg-texture-layer"></div>
+    <div id="bg-decoration-layer">⭐ 💫 ✨ 🌟 ⭐ 💖 🌈 ⭐ 💫 ✨ 🎈 ⭐ 🌸 💫 ⭐ 🦋 ✨ 💫 🌟 ⭐</div>
 
     <canvas id="confetti-canvas"></canvas>
-    <div id="toast">🏆 获得勋章：初出茅庐</div>
+    <div id="toast"></div>
 
     <div class="hud">
         <div class="hud-content">
@@ -731,7 +1354,7 @@
             <div class="hud-row-controls">
                 <!-- 左侧组 -->
                 <div class="hud-group-left">
-                    <div class="btn-pill" onclick="Game.showLevelMap()">
+                    <div class="btn-pill" onpointerdown="Game.showLevelMap()">
                         <span>🗺️</span>
                         <span id="level-title">第1关</span>
                     </div>
@@ -747,31 +1370,95 @@
                         <span id="timer-value">0.0</span>
                     </div>
 
-                    <div class="btn-pill" onclick="MistakeBook.open()">
+                    <div class="btn-pill" onpointerdown="MistakeBook.open()">
                         <span style="font-size:1rem">📖</span>
                         <span id="mistake-badge"
                             style="background:#FF6B6B; color:#fff; border-radius:8px; padding:0 6px; font-size:0.7rem; display:none;">0</span>
                     </div>
-                    <div class="pet-mini" onclick="Dashboard.open()" id="pet-avatar-mini">🥚</div>
+                    <div class="pet-mini" onpointerdown="Dashboard.open()" id="pet-avatar-mini">🥚</div>
                 </div>
             </div>
         </div>
     </div>
 
     <div id="game-container">
+        <!-- 首页数据看板 -->
+        <div id="home-dashboard">
+            <div class="home-welcome">
+                <span class="lvl-badge">Lv.<span id="home-lvl-num">1</span></span>
+                <span>✨ <span id="welcome-name">小朋友</span>，今天也要加油哦！🎈</span>
+            </div>
+
+            <!-- IP 形象英雄区 -->
+            <div class="home-hero" onpointerdown="HomeDashboard.interact()">
+                <div class="speech-bubble" id="pet-speech">你好呀！</div>
+                <div class="pet-mascot" id="pet-home-avatar">🐣</div>
+                <div class="pet-shadow" id="pet-home-shadow"></div>
+            </div>
+
+            <div class="big-map-btn" onpointerdown="Game.showLevelMap()">
+                <div class="btn-icon">🗺️</div>
+                <div class="btn-text">
+                    <span class="main-txt">开启大冒险</span>
+                    <span class="sub-txt">出发吧！去探索更多的文字秘境 ✨</span>
+                </div>
+            </div>
+
+            <!-- 数据看板折叠区 -->
+            <button class="stats-toggle-btn" id="stats-toggle" onclick="HomeDashboard.toggleStats()">
+                📊 查看我的成长纪录
+            </button>
+            <div class="home-stats-grid" id="home-stats-grid">
+                <div class="home-stat-card card-pink">
+                    <div class="home-stat-icon">📈</div>
+                    <div class="home-stat-val" id="h-stat-progress">0%</div>
+                    <div class="home-stat-label">冒险进度</div>
+                </div>
+                <!-- ... 其他统计卡片保持不变 ... -->
+                <div class="home-stat-card card-blue">
+                    <div class="home-stat-icon">📚</div>
+                    <div class="home-stat-val" id="h-stat-words">0</div>
+                    <div class="home-stat-label">已学字数</div>
+                </div>
+                <div class="home-stat-card card-yellow">
+                    <div class="home-stat-icon">✍️</div>
+                    <div class="home-stat-val" id="h-stat-mistakes">0</div>
+                    <div class="home-stat-label">错题个数</div>
+                </div>
+                <div class="home-stat-card card-green">
+                    <div class="home-stat-icon">📅</div>
+                    <div class="home-stat-val" id="h-stat-days">1</div>
+                    <div class="home-stat-label">学习天数</div>
+                </div>
+                <div class="home-stat-card card-purple">
+                    <div class="home-stat-icon">🕒</div>
+                    <div class="home-stat-val" id="h-stat-time">0</div>
+                    <div class="home-stat-label">挑战总时长(分钟)</div>
+                </div>
+                <div class="home-stat-card card-orange">
+                    <div class="home-stat-icon">🚀</div>
+                    <div class="home-stat-val" id="h-stat-speed">-</div>
+                    <div class="home-stat-label">最快速度</div>
+                </div>
+            </div>
+        </div>
         <div id="game-board" class="grid-4"></div>
     </div>
 
     <!-- 弹窗：数据 -->
     <div id="dashboard-modal" class="modal-overlay">
         <div class="card">
-            <div class="close-btn" onclick="document.getElementById('dashboard-modal').style.display='none'">✕</div>
+            <div class="close-btn" onclick="closeOverlay('dashboard-modal')">✕</div>
             <div class="dashboard-header">
                 <div class="pet-big-bg">
                     <div id="pet-avatar-big">🥚</div>
                 </div>
-                <div>
-                    <div class="pet-name">博学猫头鹰</div>
+                <div style="flex:1">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div class="pet-name" id="user-nickname-dash">小朋友</div>
+                        <span onpointerdown="NicknameSystem.open()"
+                            style="cursor:pointer; font-size:1rem; opacity:0.6;">✏️</span>
+                    </div>
                     <div class="pet-level-tag">Lv.<span id="pet-level-big">1</span></div>
                     <div class="pet-next">下一级还需 <span id="xp-needed">100</span> 点能量</div>
                 </div>
@@ -803,7 +1490,7 @@
     <!-- 弹窗：地图 -->
     <div id="map-modal" class="modal-overlay">
         <div class="card">
-            <div class="close-btn" onclick="document.getElementById('map-modal').style.display='none'">✕</div>
+            <div class="close-btn" onclick="closeOverlay('map-modal')">✕</div>
             <h2 id="map-modal-title" style="text-align:center; color:#333; margin-bottom:20px;">冒险地图</h2>
             <div id="level-map" style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px;"></div>
         </div>
@@ -811,19 +1498,34 @@
 
     <!-- 弹窗：错题本 -->
     <div id="book-modal" class="modal-overlay">
-        <div class="card">
-            <div class="close-btn" onclick="document.getElementById('book-modal').style.display='none'">✕</div>
-            <h2 id="book-modal-title" style="text-align:center; color:#333;">错题本</h2>
+        <div class="card" style="height:80%; display:flex; flex-direction:column; padding-bottom:10px;">
+            <div class="close-btn" onclick="closeOverlay('book-modal')">✕</div>
+            <h2 id="book-modal-title" style="margin-bottom:15px; flex-shrink:0; text-align:center; color:#333;">错题本</h2>
+
+            <!-- Tabs -->
+            <div style="display:flex; gap:10px; margin-bottom:15px; flex-shrink:0;">
+                <div class="btn-pill book-tab" data-mode="current" onclick="MistakeBook.switchMode('current')"
+                    style="flex:1; justify-content:center; padding:10px;">📝 待复习</div>
+                <div class="btn-pill book-tab" data-mode="history" onclick="MistakeBook.switchMode('history')"
+                    style="flex:1; justify-content:center; padding:10px;">📜 历史记录</div>
+            </div>
+
             <div id="mistake-list"
-                style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:20px;"></div>
-            <p id="book-empty-msg" style="color:#aaa; text-align:center; margin-top:30px;">暂无错题，继续保持！</p>
+                style="flex:1; overflow-y:auto; display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; align-content:start;">
+                <!-- 错题卡片 -->
+            </div>
+            <div id="book-empty-msg"
+                style="margin:auto; color:#999; text-align:center; display:none; flex-shrink:0; padding:20px;">
+                <div style="font-size:3rem; margin-bottom:10px;">🌟</div>
+                太棒了！当前没有错题哦～
+            </div>
         </div>
     </div>
 
     <!-- 弹窗：详情 -->
     <div id="detail-modal" class="modal-overlay">
         <div class="card">
-            <div class="close-btn" onclick="document.getElementById('detail-modal').style.display='none'">✕</div>
+            <div class="close-btn" onclick="closeOverlay('detail-modal')">✕</div>
             <div style="display:flex; align-items:center; gap:20px; margin-bottom:25px;">
                 <div id="card-char"
                     style="font-size:4rem; color:#FF6B6B; background:#FFF0F3; width:80px; height:80px; display:flex; align-items:center; justify-content:center; border-radius:20px;">
@@ -839,19 +1541,41 @@
                 </div>
             </div>
             <div style="background:#F9FAFB; padding:20px; border-radius:20px; margin-bottom:20px;">
-                <div style="font-size:0.8rem; color:#aaa; font-weight:bold; margin-bottom:5px;">常用组词</div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <div style="font-size:0.8rem; color:#aaa; font-weight:bold;">常用组词</div>
+                    <div class="read-btn" style="margin-left:0; width:32px; height:32px; font-size:1rem;"
+                        onclick="AudioSys.speak(document.getElementById('card-words').innerText)">🔊</div>
+                </div>
                 <div id="card-words" style="color:#333; line-height:1.6; font-size:1.1rem;"></div>
                 <div style="font-size:0.8rem; color:#aaa; font-weight:bold; margin-top:15px; margin-bottom:5px;">意思
                 </div>
                 <div id="card-desc" style="color:#555; line-height:1.5; font-size:0.95rem;"></div>
             </div>
-            <button class="btn-main" style="width:100%" onclick="MistakeBook.resolveCurrent()">我记住了</button>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeOverlay('detail-modal')">关闭</button>
+                <button id="mistake-action-btn" class="btn-main" onclick="MistakeBook.resolveCurrent()">我记住了</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹窗：重玩确认 -->
+    <div id="confirm-modal" class="modal-overlay">
+        <div class="card" style="text-align:center;">
+            <div class="close-btn" onclick="closeOverlay('confirm-modal')">✕</div>
+            <h3>重新挑战？</h3>
+            <p style="color:#666; margin:15px 0;">你已经通过这一关啦，想要再玩一次刷新纪录吗？</p>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeOverlay('confirm-modal')">取消</button>
+                <button class="btn-main" onclick="Game.confirmReplay()">确定挑战</button>
+            </div>
         </div>
     </div>
 
     <!-- 弹窗：昵称设置 -->
     <div id="nickname-modal" class="modal-overlay">
         <div class="card" style="text-align:center; max-width:480px;">
+            <div class="close-btn" id="nickname-close" onclick="closeOverlay('nickname-modal')" style="display:none">✕
+            </div>
             <div style="font-size:4rem; margin-bottom:15px;">👋</div>
             <h2 style="color:#333; margin-bottom:10px;">欢迎来到识字大冒险！</h2>
             <p style="color:#666; margin-bottom:25px; line-height:1.6;">小朋友，请告诉我你的昵称吧～</p>
@@ -864,7 +1588,7 @@
             <button class="btn-sec" onclick="NicknameSystem.randomNickname()" style="width:100%; margin-bottom:12px;">
                 🎲 随机生成可爱昵称
             </button>
-            <button class="btn-main" onclick="NicknameSystem.save()" style="width:100%;">
+            <button class="btn-main" id="nickname-save-btn" onclick="NicknameSystem.save()" style="width:100%;">
                 ✨ 开始冒险
             </button>
         </div>
@@ -903,6 +1627,36 @@
         </div>
     </div>
 
+    <!-- 弹窗：Boss 警告 -->
+    <div id="boss-warning-modal" class="modal-overlay" style="z-index: 300; background: rgba(0,0,0,0.9);">
+        <div class="card" style="text-align:center; border: 4px solid #FF4757; background: #FFF;">
+            <div style="font-size:5rem; margin-bottom:10px;">👹</div>
+            <h2 style="color:#FF4757; font-size: 2.5rem; margin-bottom:10px; font-family:'KaiTi';">大魔王出现！</h2>
+            <p style="color:#333; font-size:1.2rem; margin-bottom:20px;">
+                必须在 <span style="color:#FF4757; font-weight:bold; font-size:1.4rem;">13秒</span> 内击败它！
+            </p>
+            <div
+                style="background:#FFF0F0; padding:15px; border-radius:10px; color:#c0392b; margin-bottom:25px; font-size:0.9rem;">
+                ⚠️ 包含你容易做错的字哦！
+            </div>
+            <button class="btn-main" style="background:#FF4757; width:100%; font-size:1.3rem; padding:15px;"
+                onclick="closeOverlay('boss-warning-modal'); Game.startBossLevel()">
+                ⚔️ 接受挑战
+            </button>
+        </div>
+    </div>
+
+    <!-- 弹窗：Boss 失败 -->
+    <div id="boss-fail-modal" class="modal-overlay" style="z-index: 300;">
+        <div class="card" style="text-align:center;">
+            <div style="font-size:4rem; margin-bottom:10px;">💔</div>
+            <h2 style="color:#333; margin-bottom:10px;">时间到！</h2>
+            <p style="color:#666; margin-bottom:20px;">大魔王太强了，不要灰心！</p>
+            <button class="btn-main" onclick="closeOverlay('boss-fail-modal'); Game.startBossLevel()">🔄 重新挑战</button>
+            <div style="margin-top:15px; color:#aaa; cursor:pointer;"
+                onclick="closeOverlay('boss-fail-modal'); HomeDashboard.show()">暂时撤退</div>
+        </div>
+    </div>
     <script>
         // ================= 数据 =================
         const fullVocabulary = [
@@ -1700,7 +2454,8 @@
             { id: 'perfect', icon: '✨', name: '完美' },
             { id: 'cleaner', icon: '🧹', name: '清道夫' },
             { id: 'master', icon: '👑', name: '大师' },
-            { id: 'pet_lover', icon: '💖', name: '铲屎官' }
+            { id: 'pet_lover', icon: '💖', name: '铲屎官' },
+            { id: 'boss_killer', icon: '🗡️', name: '勇者' }
         ];
 
         // 励志语句库（带昵称占位符）
@@ -1766,21 +2521,50 @@
                 const randomName = FUN_NICKNAMES[Math.floor(Math.random() * FUN_NICKNAMES.length)];
                 document.getElementById('nickname-input').value = randomName;
             },
+            open: function () {
+                const modal = document.getElementById('nickname-modal');
+                const input = document.getElementById('nickname-input');
+                const closeBtn = document.getElementById('nickname-close');
+                const saveBtn = document.getElementById('nickname-save-btn');
+
+                input.value = SaveSystem.data.nickname || '';
+                closeBtn.style.display = SaveSystem.data.nickname ? 'block' : 'none';
+                saveBtn.innerText = SaveSystem.data.nickname ? '确认修改' : '✨ 开始冒险';
+
+                modal.style.display = 'flex';
+                setTimeout(() => input.focus(), 100);
+            },
             save: function () {
                 const input = document.getElementById('nickname-input').value.trim();
                 if (!input) {
                     Toast.show('请输入昵称哦～ 😊');
                     return;
                 }
+                const isFirstTime = !SaveSystem.data.nickname;
                 SaveSystem.data.nickname = input;
                 SaveSystem.save();
                 document.getElementById('nickname-modal').style.display = 'none';
                 this.updateDisplay();
-                Toast.show(`🎉 欢迎你，${input}！`);
+                if (isFirstTime) {
+                    HomeDashboard.show();
+                    Toast.show(`🎉 欢迎你，${input}！`);
+                } else {
+                    Toast.show(`✅ 昵称已修改为：${input}`);
+                    if (document.getElementById('dashboard-modal').style.display === 'flex') {
+                        Dashboard.open(); // 刷新 Dashboard 显示
+                    }
+                }
             },
             updateDisplay: function () {
                 const nickname = SaveSystem.data.nickname || '小朋友';
                 document.getElementById('page-title').innerText = `✨ 「${nickname}」的识字大冒险 🎈`;
+
+                const dashName = document.getElementById('user-nickname-dash');
+                if (dashName) dashName.innerText = nickname;
+
+                const welcomeName = document.getElementById('welcome-name');
+                if (welcomeName) welcomeName.innerText = nickname;
+
                 const mapTitle = document.getElementById('map-modal-title');
                 if (mapTitle) mapTitle.innerText = `「${nickname}」的冒险地图`;
                 const bookTitle = document.getElementById('book-modal-title');
@@ -1826,8 +2610,64 @@
                     u.lang = 'zh-CN'; u.rate = 0.9;
                     window.speechSynthesis.speak(u);
                 } else { alert("您的设备暂不支持朗读功能"); }
+            },
+            tensionOsc: null,
+            playTension: function () {
+                if (!this.ctx) this.init();
+                if (this.tensionOsc) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(100, this.ctx.currentTime);
+                // Create a low pulsing effect
+                gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.1, this.ctx.currentTime + 0.5);
+
+                // LFO for tension pulse
+                const lfo = this.ctx.createOscillator();
+                lfo.type = 'sine';
+                lfo.frequency.value = 4; // 4Hz pulse
+                const lfoGain = this.ctx.createGain();
+                lfoGain.gain.value = 50; // Depth of modulation
+                lfo.connect(lfoGain);
+                lfoGain.connect(osc.frequency);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start();
+                lfo.start();
+                this.tensionOsc = { osc, gain, lfo };
+            },
+            stopTension: function () {
+                if (this.tensionOsc) {
+                    try {
+                        const now = this.ctx.currentTime;
+                        this.tensionOsc.gain.gain.linearRampToValueAtTime(0, now + 0.5);
+                        this.tensionOsc.osc.stop(now + 0.5);
+                        this.tensionOsc.lfo.stop(now + 0.5);
+                    } catch (e) { }
+                    this.tensionOsc = null;
+                }
             }
         };
+
+        // 通用关闭弹窗并返回首页检测
+        function closeOverlay(id) {
+            document.getElementById(id).style.display = 'none';
+            // 检查是否还有其它打开的弹窗
+            const otherModals = Array.from(document.querySelectorAll('.modal-overlay')).some(m => m.style.display === 'flex');
+
+            if (Game.active) {
+                // 如果游戏进行中，且没有其他弹窗，则恢复计时
+                if (!otherModals) {
+                    Game.resume();
+                }
+            } else {
+                // 如果游戏未进行，则显示首页仪表盘
+                HomeDashboard.show();
+            }
+        }
 
         // ================= 存档与逻辑 =================
         const SaveSystem = {
@@ -1835,13 +2675,32 @@
             data: {
                 maxLevel: 1, levelStars: {}, mistakes: {}, levelRecords: {},
                 pet: { level: 1, xp: 0, form: 0 },
-                stats: { totalTime: 0, totalWords: [], loginDays: 1, lastLoginDate: new Date().toDateString() },
+                stats: { totalTime: 0, totalWords: [], loginDays: 1, lastLoginDate: new Date().toDateString(), bossDefeats: 0 },
                 badges: [],
-                nickname: '' // 添加昵称字段
+                nickname: '', // 添加昵称字段
+                historyMistakes: {} // 添加历史错题字段
             },
             load: function () {
                 const saved = localStorage.getItem(this.key);
-                if (saved) { this.data = { ...this.data, ...JSON.parse(saved) }; }
+                if (saved) {
+                    this.data = { ...this.data, ...JSON.parse(saved) };
+                    // 确保 historyMistakes 存在
+                    if (!this.data.historyMistakes) this.data.historyMistakes = {};
+
+                    // 数据同步：确保当前的错题也被计入历史错题（修复旧存档兼容性问题）
+                    // Data Sync: Ensure current mistakes are counted in history (Fixing backward compatibility)
+                    for (let key in this.data.mistakes) {
+                        const currentCount = this.data.mistakes[key].count;
+                        if (!this.data.historyMistakes[key]) {
+                            this.data.historyMistakes[key] = { count: currentCount };
+                        } else {
+                            // 如果历史记录少于当前记录（理论不应发生，但为了保险），同步为当前值
+                            if (this.data.historyMistakes[key].count < currentCount) {
+                                this.data.historyMistakes[key].count = currentCount;
+                            }
+                        }
+                    }
+                }
                 this.checkDailyLogin(); this.updateUI();
             },
             save: function () { localStorage.setItem(this.key, JSON.stringify(this.data)); this.updateUI(); },
@@ -1854,15 +2713,35 @@
                 }
             },
             addMistake: function (char) {
+                if (!this.data.historyMistakes) this.data.historyMistakes = {}; // Backward compatibility
+
+                // 1. Current mistakes (Active list)
                 if (!this.data.mistakes[char]) this.data.mistakes[char] = { count: 0 };
-                this.data.mistakes[char].count++; this.save();
+                this.data.mistakes[char].count++;
+
+                // 2. Historical mistakes (All-time record)
+                if (!this.data.historyMistakes[char]) this.data.historyMistakes[char] = { count: 0 };
+                this.data.historyMistakes[char].count++;
+
+                this.save();
             },
             removeMistake: function (char) {
                 if (this.data.mistakes[char]) { delete this.data.mistakes[char]; BadgeSystem.check('cleaner'); this.save(); }
             },
             checkNewRecord: function (lvl, time) {
                 const best = this.data.levelRecords[lvl];
-                if (!best || time < best) { this.data.levelRecords[lvl] = time; this.save(); return true; }
+                // 如果是第一次玩（没有旧纪录），保存纪录但返回 false（不显示“打破纪录”提示）
+                if (!best) {
+                    this.data.levelRecords[lvl] = time;
+                    this.save();
+                    return false;
+                }
+                // 只有当新时间优于旧纪录时，才更新并返回 true
+                if (time < best) {
+                    this.data.levelRecords[lvl] = time;
+                    this.save();
+                    return true;
+                }
                 return false;
             },
             updateUI: function () {
@@ -1905,6 +2784,7 @@
                 if (type === 'persistent' && d.stats.loginDays >= 3) id = 'persistent';
                 if (type === 'cleaner') id = 'cleaner';
                 if (type === 'pet_lover' && d.pet.level >= 3) id = 'pet_lover';
+                if (type === 'boss_killer' && d.stats.bossDefeats >= 1) id = 'boss_killer';
                 if (id && !d.badges.includes(id)) {
                     d.badges.push(id);
                     const info = BADGES.find(b => b.id === id);
@@ -1916,19 +2796,59 @@
 
         const MistakeBook = {
             cur: null,
+            mode: 'current', // 'current' or 'history'
+            switchMode: function (m) {
+                this.mode = m;
+                // 更新 Tab 样式
+                document.querySelectorAll('.book-tab').forEach(el => {
+                    if (el.dataset.mode === m) {
+                        el.classList.add('active');
+                        el.style.background = '#FF8BA7';
+                        el.style.color = '#fff';
+                    } else {
+                        el.classList.remove('active');
+                        el.style.background = '#f0f0f0';
+                        el.style.color = '#666';
+                    }
+                });
+                this.open();
+            },
             open: function () {
+                Game.pause();
                 document.getElementById('book-modal').style.display = 'flex';
+
+                // 初始化 Tab 样式（如果是第一次打开）
+                if (!document.querySelector('.book-tab.active')) {
+                    this.switchMode('current');
+                    return;
+                }
+
                 const list = document.getElementById('mistake-list'); list.innerHTML = '';
-                const m = SaveSystem.data.mistakes;
+
+                // 根据模式选择数据源
+                const source = this.mode === 'current' ? SaveSystem.data.mistakes : SaveSystem.data.historyMistakes;
+                // 兼容：如果 historyMistakes 不存在（旧存档），即为空
+                const m = source || {};
+
                 const keys = Object.keys(m).sort((a, b) => m[b].count - m[a].count);
-                if (keys.length === 0) document.getElementById('book-empty-msg').style.display = 'block';
-                else {
-                    document.getElementById('book-empty-msg').style.display = 'none';
+
+                const emptyMsg = document.getElementById('book-empty-msg');
+                if (keys.length === 0) {
+                    emptyMsg.style.display = 'block';
+                    emptyMsg.innerText = this.mode === 'current' ? '太棒了！当前没有错题哦～' : '还没有历史错题记录呢～';
+                } else {
+                    emptyMsg.style.display = 'none';
                     keys.forEach(k => {
                         const d = document.createElement('div');
-                        d.style.cssText = "background:#F9FAFB; border-radius:16px; padding:15px; text-align:center; cursor:pointer; border:1px solid #eee;";
-                        d.innerHTML = `<div style="font-size:1.6rem; color:#333; font-weight:bold;">${k}</div><div style="font-size:0.8rem; color:#999; margin-top:5px;">错${m[k].count}次</div>`;
-                        d.onclick = () => this.detail(k);
+                        d.style.cssText = "background:#F9FAFB; border-radius:16px; padding:15px; text-align:center; cursor:pointer; border:1px solid #eee; transition:all 0.2s; position:relative;";
+                        d.onmouseenter = () => d.style.background = "#fff";
+                        d.onmouseleave = () => d.style.background = "#F9FAFB";
+
+                        // 历史模式下显示累计标记
+                        const countTag = this.mode === 'history' ? '累计' : '';
+
+                        d.innerHTML = `<div style="font-size:1.6rem; color:#333; font-weight:bold;">${k}</div><div style="font-size:0.8rem; color:#999; margin-top:5px;">${countTag}错${m[k].count}次</div>`;
+                        d.onpointerdown = () => this.detail(k);
                         list.appendChild(d);
                     });
                 }
@@ -1940,14 +2860,102 @@
                 document.getElementById('card-pinyin').innerText = d.pinyin;
                 document.getElementById('card-words').innerText = d.words ? d.words.join('，') : '暂无';
                 document.getElementById('card-desc').innerText = d.desc || '暂无';
+
+                // 根据模式调整按钮文字
+                const actionBtn = document.getElementById('mistake-action-btn');
+                if (this.mode === 'history') {
+                    actionBtn.innerText = '练习一下';
+                } else {
+                    actionBtn.innerText = '我学会了';
+                }
+
                 document.getElementById('detail-modal').style.display = 'flex';
             },
             resolveCurrent: function () {
                 if (this.cur) {
-                    SaveSystem.removeMistake(this.cur);
+                    if (this.mode === 'current') {
+                        SaveSystem.removeMistake(this.cur);
+                        Toast.show('太棒了！消灭了一个错题！');
+                    } else {
+                        // 历史模式下只是练习，不删除
+                        Toast.show('温故而知新，你真棒！');
+                    }
                     document.getElementById('detail-modal').style.display = 'none';
-                    this.open(); AudioSys.playWin();
+                    // 刷新列表时保持当前模式
+                    this.open();
+                    AudioSys.playWin();
                 }
+            }
+        };
+
+        const HomeDashboard = {
+            quotes: ["今天学什么呢？", "每一个字都是一个小秘密哦！", "你进步得真快！", "休息一下，喝口水吧～", "我们一起去大冒险吧！", "识字真有趣，对吧？", "你是最棒的小学生！"],
+            update: function () {
+                const s = SaveSystem.data.stats;
+                NicknameSystem.updateDisplay();
+
+                // 动态计算进度
+                const totalLvls = Game.config.length || 1;
+                const progress = Math.min(100, Math.floor(((SaveSystem.data.maxLevel - 1) / totalLvls) * 100));
+                document.getElementById('h-stat-progress').innerText = progress + '%';
+
+                document.getElementById('h-stat-words').innerText = s.totalWords.length;
+                document.getElementById('h-stat-mistakes').innerText = Object.keys(SaveSystem.data.mistakes).length;
+                document.getElementById('h-stat-days').innerText = s.loginDays;
+                document.getElementById('h-stat-time').innerText = Math.floor(s.totalTime / 60);
+
+                const avg = s.totalWords.length > 0 ? (s.totalTime / s.totalWords.length).toFixed(1) : '-';
+                document.getElementById('h-stat-speed').innerText = avg === '-' ? '-' : avg + 's';
+                document.getElementById('level-title').innerText = `第${SaveSystem.data.maxLevel}关`;
+
+                // 更新首页等级显示
+                const homeLvl = document.getElementById('home-lvl-num');
+                if (homeLvl) homeLvl.innerText = SaveSystem.data.pet.level;
+
+                // 更新 IP 形象（根据宠物等级/形态）
+                const pet = SaveSystem.data.pet;
+                document.getElementById('pet-home-avatar').innerText = PetSystem.forms[pet.form];
+            },
+            toggleStats: function () {
+                const grid = document.getElementById('home-stats-grid');
+                const btn = document.getElementById('stats-toggle');
+                const isExp = grid.classList.toggle('expanded');
+                btn.innerText = isExp ? '🔼 收起成长纪录' : '📊 查看我的成长纪录';
+                AudioSys.playClick();
+            },
+            interact: function () {
+                const pet = document.getElementById('pet-home-avatar');
+                const shadow = document.getElementById('pet-home-shadow');
+                const bubble = document.getElementById('pet-speech');
+
+                // 跳跃动作与阴影配合
+                pet.classList.remove('pet-jump');
+                shadow.classList.remove('pet-jumping-shadow');
+                void pet.offsetWidth;
+                pet.classList.add('pet-jump');
+                shadow.classList.add('pet-jumping-shadow');
+
+                // 随机说话
+                bubble.innerText = this.quotes[Math.floor(Math.random() * this.quotes.length)];
+                bubble.classList.add('active');
+
+                AudioSys.playMatch();
+
+                if (this.speechTimer) clearTimeout(this.speechTimer);
+                this.speechTimer = setTimeout(() => {
+                    bubble.classList.remove('active');
+                    shadow.classList.remove('pet-jumping-shadow');
+                }, 2500);
+            },
+            show: function () {
+                this.update();
+                document.getElementById('home-dashboard').style.display = 'flex';
+                document.getElementById('game-board').style.display = 'none';
+                document.body.classList.remove('game-active');
+            },
+            hide: function () {
+                document.getElementById('home-dashboard').style.display = 'none';
+                document.getElementById('game-board').style.display = 'grid';
             }
         };
 
@@ -1963,8 +2971,18 @@
                 BADGES.forEach(b => {
                     const unlocked = SaveSystem.data.badges.includes(b.id);
                     const d = document.createElement('div');
-                    d.className = `badge-item ${unlocked ? 'unlocked' : ''}`; d.innerHTML = b.icon;
-                    d.onclick = () => { if (unlocked) Toast.show(`${b.icon} ${b.name}`); };
+                    d.className = `badge-item ${unlocked ? 'unlocked' : ''}`;
+
+                    let iconHTML = b.icon;
+                    // Special display for Boss Killer badge
+                    if (b.id === 'boss_killer' && unlocked) {
+                        const kills = SaveSystem.data.stats.bossDefeats || 0;
+                        iconHTML += `<div style="font-size:0.6rem; position:absolute; bottom:-5px; right:-5px; background:#FF4757; color:#fff; border-radius:10px; padding:2px 5px; font-weight:bold;">x${kills}</div>`;
+                    }
+
+                    d.innerHTML = iconHTML;
+                    d.style.position = 'relative'; // For positioning the counter
+                    d.onpointerdown = () => { if (unlocked) Toast.show(`${b.icon} ${b.name} ${b.id === 'boss_killer' ? `(击败 ${SaveSystem.data.stats.bossDefeats} 次)` : ''}`); };
                     badgeList.appendChild(d);
                 });
                 document.getElementById('dashboard-modal').style.display = 'flex';
@@ -1973,14 +2991,100 @@
 
         const Game = {
             curr: 1, active: false, sel: null, matched: 0, config: [], startT: 0, timer: null, pairs: 0,
+            paused: false, pauseT: 0, isBossMode: false, bossTimeLimit: 20,
+            pause: function () {
+                if (!this.active || this.paused) return;
+                this.paused = true;
+                this.pauseT = Date.now();
+            },
+            resume: function () {
+                if (!this.active || !this.paused) return;
+                this.startT += (Date.now() - this.pauseT);
+                this.paused = false;
+            },
             init: function () {
-                SaveSystem.load();
-                NicknameSystem.init(); // 初始化昵称系统
                 const ppl = 6;
                 const total = Math.ceil(fullVocabulary.length / ppl);
-                this.config = [];
+                this.config = []; // Reset config
                 for (let i = 0; i < total; i++) this.config.push({ id: i + 1, words: fullVocabulary.slice(i * ppl, (i + 1) * ppl) });
-                this.showLevelMap();
+            },
+            startBossLevel: function () {
+                this.isBossMode = true;
+                this.bossTimeLimit = 13; // Set correct time limit
+                document.getElementById('boss-warning-modal').style.display = 'none';
+                document.getElementById('boss-fail-modal').style.display = 'none';
+                document.body.classList.add('boss-mode');
+
+                // Generate Content: 6 words (priority: history > current > random)
+                let pool = [];
+                // 1. Add historical mistakes
+                const history = Object.keys(SaveSystem.data.historyMistakes || {});
+                history.forEach(char => {
+                    const found = fullVocabulary.find(v => v.char === char);
+                    if (found) pool.push(found);
+                });
+                // 2. Add current mistakes if needed
+                if (pool.length < 6) {
+                    const current = Object.keys(SaveSystem.data.mistakes || {});
+                    current.forEach(char => {
+                        if (!pool.find(p => p.char === char)) {
+                            const found = fullVocabulary.find(v => v.char === char);
+                            if (found) pool.push(found);
+                        }
+                    });
+                }
+                // 3. Fill with random words if still < 6
+                while (pool.length < 6) {
+                    const rand = fullVocabulary[Math.floor(Math.random() * fullVocabulary.length)];
+                    if (!pool.includes(rand)) pool.push(rand);
+                }
+
+                // Slice to exactly 6 and shuffle
+                pool = pool.sort(() => 0.5 - Math.random()).slice(0, 6);
+
+                document.getElementById('map-modal').style.display = 'none';
+                document.getElementById('win-modal').style.display = 'none';
+                document.getElementById('level-title').innerText = `👹 大魔王关卡`;
+                document.body.classList.add('game-active');
+                HomeDashboard.hide();
+
+                AudioSys.playTension(); // Start tension audio
+
+                this.render(pool);
+                this.active = true;
+                this.startT = Date.now();
+                clearInterval(this.timer);
+
+                // Timer Logic for Boss Mode
+                const tEl = document.getElementById('timer-value');
+                tEl.innerText = this.bossTimeLimit.toFixed(1);
+
+                this.timer = setInterval(() => {
+                    if (this.active && !this.paused) {
+                        const elapsed = (Date.now() - this.startT) / 1000;
+                        const remaining = this.bossTimeLimit - elapsed;
+
+                        if (remaining <= 0) {
+                            this.failBossLevel();
+                        } else {
+                            tEl.innerText = remaining.toFixed(1);
+                        }
+                    }
+                }, 100);
+            },
+            failBossLevel: function () {
+                this.active = false; clearInterval(this.timer);
+                AudioSys.stopTension(); // Stop audio
+                AudioSys.playError();
+                document.body.classList.remove('boss-mode');
+                // Shake effect on board
+                const b = document.getElementById('game-board');
+                b.classList.add('shake');
+                setTimeout(() => b.classList.remove('shake'), 500);
+
+                setTimeout(() => {
+                    document.getElementById('boss-fail-modal').style.display = 'flex';
+                }, 800);
             },
             showLevelMap: function () {
                 document.getElementById('map-modal').style.display = 'flex';
@@ -1988,30 +3092,76 @@
                 const map = document.getElementById('level-map'); map.innerHTML = '';
                 this.config.forEach((l, i) => {
                     const btn = document.createElement('div');
-                    const locked = (i + 1) > SaveSystem.data.maxLevel;
-                    const stars = SaveSystem.data.levelStars[i + 1] || 0;
-                    btn.style.cssText = `background:${locked ? '#F3F4F6' : '#fff'}; border-radius:18px; aspect-ratio:1; display:flex; flex-direction:column; justify-content:center; align-items:center; cursor:pointer; border:1px solid ${stars ? '#FFD93D' : '#eee'}; box-shadow:0 4px 0 ${stars ? '#FFE082' : '#eee'};`;
+                    const levelId = i + 1;
+                    const maxLvl = SaveSystem.data.maxLevel;
+                    const locked = levelId > maxLvl;
+                    const stars = SaveSystem.data.levelStars[levelId] || 0;
+
+                    // 样式构建
+                    let css = `background:${locked ? '#F3F4F6' : '#fff'}; border-radius:18px; aspect-ratio:1; display:flex; flex-direction:column; justify-content:center; align-items:center; cursor:pointer; border:1px solid ${stars ? '#FFD93D' : '#eee'}; box-shadow:0 4px 0 ${stars ? '#FFE082' : '#eee'}; touch-action: manipulation;`;
+
+                    btn.style.cssText = css;
                     if (stars) btn.style.background = "#FFF9C4";
-                    btn.innerHTML = `<div style="font-weight:bold; font-family:'Nunito'; font-size:1.2rem; color:${locked ? '#ccc' : '#555'}">${i + 1}</div>`;
-                    const record = SaveSystem.data.levelRecords[i + 1];
+
+                    // 当前最高关卡添加红色呼吸高亮
+                    if (levelId === maxLvl) {
+                        btn.classList.add('pulse-red');
+                    }
+
+                    btn.innerHTML = `<div style="font-weight:bold; font-family:'Nunito'; font-size:1.2rem; color:${locked ? '#ccc' : '#555'}">${levelId}</div>`;
+                    const record = SaveSystem.data.levelRecords[levelId];
                     if (!locked) {
                         btn.innerHTML += stars ? `<div style="font-size:0.6rem; margin-top:2px;">⭐⭐⭐</div>` : `<div style="font-size:0.7rem; color:#aaa; margin-top:2px;">GO</div>`;
                         if (record) btn.innerHTML += `<div style="font-size:0.65rem; color:#2E86C1; margin-top:4px; font-family:'Nunito'; font-weight:800;">⏱️ ${record}s</div>`;
                     }
-                    btn.onclick = () => { if (!locked) this.startLevel(i + 1); };
+
+                    // 防误触逻辑：改用原生 onclick。
+                    // 原生 click 事件在发生滚动/滑动时不会触发，天然解决了“滑动误触”问题。
+                    // 之前使用 onpointerdown 会导致一按就触发，改用 onclick 即可修复，
+                    // 同时避免了自定义位移检测阈值过严导致的点不进去的问题。
+                    if (!locked) {
+                        btn.onclick = () => {
+                            this.requestLevel(levelId);
+                        };
+                    }
                     map.appendChild(btn);
                 });
+            },
+            pendingLevel: null,
+            requestLevel: function (id) {
+                // 如果是当前正在挑战的最高关卡，直接进入
+                if (id === SaveSystem.data.maxLevel) {
+                    this.startLevel(id);
+                } else {
+                    // 如果是旧关卡，弹出确认框
+                    this.pendingLevel = id;
+                    document.getElementById('confirm-modal').style.display = 'flex';
+                }
+            },
+            confirmReplay: function () {
+                if (this.pendingLevel) {
+                    closeOverlay('confirm-modal');
+                    this.startLevel(this.pendingLevel);
+                    this.pendingLevel = null;
+                }
             },
             startLevel: function (id) {
                 this.curr = id;
                 document.getElementById('map-modal').style.display = 'none';
                 document.getElementById('win-modal').style.display = 'none';
                 document.getElementById('level-title').innerText = `第${id}关`;
+                document.body.classList.add('game-active');
+                document.getElementById('game-container').scrollTop = 0;
+                HomeDashboard.hide();
                 this.render(this.config[id - 1].words);
                 this.startT = Date.now();
                 clearInterval(this.timer);
                 const tEl = document.getElementById('timer-value'); tEl.innerText = "0.0";
-                this.timer = setInterval(() => { if (this.active) tEl.innerText = ((Date.now() - this.startT) / 1000).toFixed(1); }, 100);
+                this.timer = setInterval(() => {
+                    if (this.active && !this.paused) {
+                        tEl.innerText = ((Date.now() - this.startT) / 1000).toFixed(1);
+                    }
+                }, 100);
             },
             replayLevel: function () { this.startLevel(this.curr); },
             nextLevel: function () { this.startLevel(this.curr + 1); },
@@ -2025,18 +3175,30 @@
                 items.forEach(i => {
                     const el = document.createElement('div');
                     el.className = 'bubble'; el.innerText = i.txt; el.dataset.id = i.id;
-                    el.dataset.type = i.t === 'p' ? 'pinyin' : 'char'; // 关键区分点
-                    el.onclick = () => this.handle(el);
+                    el.dataset.type = i.t === 'p' ? 'pinyin' : 'char';
+
+                    // 根据拼音长度动态调整字号，防止溢出
+                    if (i.t === 'p') {
+                        if (i.txt.length >= 6) {
+                            el.classList.add('extra-long-txt');
+                        } else if (i.txt.length >= 5) {
+                            el.classList.add('long-txt');
+                        }
+                    }
+
+                    // 使用 pointerdown 提升移动端响应速度
+                    el.onpointerdown = (e) => {
+                        e.preventDefault();
+                        this.handle(el);
+                    };
                     el.style.animationDelay = Math.random() + 's';
                     b.appendChild(el);
                 });
             },
             handle: function (el) {
                 if (!this.active || el.classList.contains('matched')) return;
-
-                // 瞬间 Q弹 反馈
                 el.classList.remove('bubble-pop-active');
-                void el.offsetWidth; // 触发回流以重启动画
+                void el.offsetWidth;
                 el.classList.add('bubble-pop-active');
                 setTimeout(() => el.classList.remove('bubble-pop-active'), 300);
 
@@ -2052,63 +3214,167 @@
                 if (!this.sel) this.sel = el;
                 else {
                     const f = this.sel;
-                    document.getElementById('game-board').style.pointerEvents = 'none';
-                    if (f.dataset.id === el.dataset.id) {
+                    const b = document.getElementById('game-board');
+                    b.style.pointerEvents = 'none';
+
+                    // 核心匹配逻辑：支持同音字/多音字
+                    const isCorrect = (function () {
+                        // 必须是一个汉字一个拼音
+                        if (f.dataset.type === el.dataset.type) return false;
+                        const char = f.dataset.type === 'char' ? f.innerText : el.innerText;
+                        const pinyin = f.dataset.type === 'pinyin' ? f.innerText : el.innerText;
+                        // 在词库中查找任意匹配项
+                        return fullVocabulary.some(v => v.char === char && v.pinyin === pinyin);
+                    })();
+
+                    if (isCorrect) {
                         AudioSys.playMatch();
                         const r = el.getBoundingClientRect();
                         Particles.spawn(r.left + r.width / 2, r.top + r.height / 2);
-                        if (!SaveSystem.data.stats.totalWords.includes(f.dataset.id)) SaveSystem.data.stats.totalWords.push(f.dataset.id);
+                        const charId = f.dataset.type === 'char' ? f.dataset.id : el.dataset.id;
+                        if (!SaveSystem.data.stats.totalWords.includes(charId)) SaveSystem.data.stats.totalWords.push(charId);
+
                         setTimeout(() => {
                             f.classList.add('matched'); el.classList.add('matched');
                             f.classList.remove('selected'); el.classList.remove('selected');
                             this.matched++;
-                            document.getElementById('game-board').style.pointerEvents = 'auto';
+                            b.style.pointerEvents = 'auto';
                             if (this.matched >= this.pairs) this.finish();
-                        }, 250); // 缩短延迟，让反馈更即时
+                        }, 250);
                     } else {
                         AudioSys.playError();
                         SaveSystem.addMistake(f.dataset.id);
                         setTimeout(() => {
                             f.classList.add('shake');
                             el.classList.add('shake');
-                            f.classList.remove('selected'); // 错误时也去掉选中态，避免视觉混乱
-                        }, 200);
+                            f.classList.remove('selected');
+                        }, 100); // 缩短等待时间
                         setTimeout(() => {
                             f.classList.remove('shake');
                             el.classList.remove('selected', 'shake');
                             document.getElementById('game-board').style.pointerEvents = 'auto';
-                        }, 700);
+                        }, 500); // 缩短锁定时间，从 700ms 降至 500ms
                     }
                     this.sel = null;
                 }
             },
             finish: function () {
                 this.active = false; clearInterval(this.timer);
-                const time = parseFloat(document.getElementById('timer-value').innerText);
+                const timerVal = parseFloat(document.getElementById('timer-value').innerText);
+                let time = timerVal; // Default: Normal mode (counts up)
+
                 AudioSys.playWin();
-                SaveSystem.data.levelStars[this.curr] = 3;
-                if (this.curr === SaveSystem.data.maxLevel) SaveSystem.data.maxLevel++;
+
+                // 普通关卡完成逻辑 (Normal Level Logic)
+                if (!this.isBossMode) {
+                    SaveSystem.data.levelStars[this.curr] = 3;
+
+                    // Trigger Boss Battle every 5 levels (Boss Logic)
+                    // Configurable Trigger: Level % 5 === 0. Only on first clear (curr === maxLevel)
+                    if (this.curr % 5 === 0 && this.curr === SaveSystem.data.maxLevel) {
+                        // Delay slightly to let the "match" sound finish or just for effect
+                        setTimeout(() => {
+                            document.getElementById('boss-warning-modal').style.display = 'flex';
+                            // Play a specific sound if available, or just reuse error sound as 'alarm'
+                            AudioSys.playError();
+                        }, 500);
+                        return; // Stop normal win flow
+                    }
+
+                    if (this.curr === SaveSystem.data.maxLevel) SaveSystem.data.maxLevel++;
+                } else {
+                    // Boss Level Complete
+                    // Recalculate time for Boss (Limit - Remaining)
+                    time = parseFloat((this.bossTimeLimit - timerVal).toFixed(1));
+
+                    AudioSys.stopTension(); // Stop tension audio
+                    document.body.classList.remove('boss-mode');
+                    this.isBossMode = false; // Reset mode
+                    // Advance level after boss defeat
+                    SaveSystem.data.maxLevel++;
+
+                    // Boss Victory Stats & Badge
+                    if (!SaveSystem.data.stats.bossDefeats) SaveSystem.data.stats.bossDefeats = 0;
+                    SaveSystem.data.stats.bossDefeats++;
+                    BadgeSystem.check('boss_killer');
+
+                    Toast.show(`🎉 恭喜打败大魔王！用时 ${time} 秒`);
+                }
+
                 SaveSystem.data.stats.totalTime += time;
                 const isRec = SaveSystem.checkNewRecord(this.curr, time);
                 const xp = isRec ? 50 : 20;
                 PetSystem.addXP(xp);
                 BadgeSystem.check('first_win'); BadgeSystem.check('speedster', time / this.pairs); BadgeSystem.check('scholar');
                 SaveSystem.save();
+                HomeDashboard.update();
                 setTimeout(() => {
                     document.getElementById('win-modal').style.display = 'flex';
                     document.getElementById('result-time').innerText = time + 's';
                     document.getElementById('result-best').innerText = SaveSystem.data.levelRecords[this.curr] + 's';
                     document.getElementById('record-alert').style.display = isRec ? 'block' : 'none';
-                    // 显示随机励志语句
                     document.getElementById('encouragement-text').innerText = getRandomEncouragement();
                     for (let i = 0; i < 5; i++) setTimeout(() => Particles.spawn(window.innerWidth / 2, window.innerHeight / 2), i * 200);
                 }, 500);
             }
         };
 
-        const Toast = { t: null, show: function (m) { const e = document.getElementById('toast'); e.innerText = m; e.style.transform = "translateX(-50%) translateY(0)"; if (this.t) clearTimeout(this.t); this.t = setTimeout(() => e.style.transform = "translateX(-50%) translateY(100px)", 3000) } };
-        const Particles = { canvas: document.getElementById('confetti-canvas'), ctx: document.getElementById('confetti-canvas').getContext('2d'), items: [], resize: function () { this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight }, spawn: function (x, y) { for (let i = 0; i < 30; i++)this.items.push({ x, y, vx: (Math.random() - .5) * 15, vy: (Math.random() - .5) * 15, life: 1, color: `hsl(${Math.random() * 360},80%,60%)` }) }, loop: function () { this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); for (let i = 0; i < this.items.length; i++) { let p = this.items[i]; p.x += p.vx; p.y += p.vy; p.vy += 0.5; p.life -= 0.02; this.ctx.globalAlpha = p.life; this.ctx.fillStyle = p.color; this.ctx.beginPath(); this.ctx.arc(p.x, p.y, 5, 0, 6.28); this.ctx.fill(); if (p.life <= 0) this.items.splice(i--, 1) } requestAnimationFrame(() => this.loop()) } }; Particles.resize(); window.onresize = () => Particles.resize(); Particles.loop();
-        Game.init(); document.addEventListener('gesturestart', (e) => e.preventDefault());
+        const Toast = {
+            t: null,
+            show: function (m) {
+                const e = document.getElementById('toast');
+                if (!e) return;
+                e.innerText = m;
+                e.classList.add('show');
+                if (this.t) clearTimeout(this.t);
+                this.t = setTimeout(() => {
+                    e.classList.remove('show');
+                    this.t = null;
+                }, 3000);
+            }
+        };
+        const Particles = {
+            canvas: document.getElementById('confetti-canvas'),
+            ctx: document.getElementById('confetti-canvas').getContext('2d'),
+            items: [],
+            resize: function () { this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight },
+            spawn: function (x, y) {
+                // 移动端减少粒子数量
+                const count = window.innerWidth < 500 ? 15 : 30;
+                for (let i = 0; i < count; i++)this.items.push({ x, y, vx: (Math.random() - .5) * 15, vy: (Math.random() - .5) * 15, life: 1, color: `hsl(${Math.random() * 360},80%,60%)` })
+            },
+            loop: function () {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                for (let i = 0; i < this.items.length; i++) {
+                    let p = this.items[i];
+                    p.x += p.vx; p.y += p.vy; p.vy += 0.5; p.life -= 0.02;
+                    this.ctx.globalAlpha = p.life;
+                    this.ctx.fillStyle = p.color;
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, 5, 0, 6.28);
+                    this.ctx.fill();
+                    if (p.life <= 0) this.items.splice(i--, 1)
+                }
+                requestAnimationFrame(() => this.loop())
+            }
+        };
+        Particles.resize(); window.onresize = () => Particles.resize(); Particles.loop();
+
+        // 关键修复：显式挂载核心对象到 window，确保 HTML onclick 能访问
+        window.Game = Game;
+        window.AudioSys = AudioSys;
+        window.MistakeBook = MistakeBook;
+        window.SaveSystem = SaveSystem;
+        window.HomeDashboard = HomeDashboard;
+        window.NicknameSystem = NicknameSystem;
+        window.Toast = Toast;
+
+        // 初始化
+        SaveSystem.load();
+        NicknameSystem.init();
+        Game.init();
+        HomeDashboard.show();
+        document.addEventListener('gesturestart', (e) => e.preventDefault());
     </script>
 </body>
 
