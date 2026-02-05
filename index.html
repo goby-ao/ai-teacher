@@ -548,6 +548,71 @@
             perspective: 1000px;
         }
 
+        /* --- 错题本卡片 --- */
+        #mistake-list {
+            grid-auto-rows: auto;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            padding: 4px 2px 14px;
+            align-content: start;
+            min-height: 0;
+        }
+
+        .mistake-card {
+            background: #F9FAFB;
+            border-radius: 16px;
+            text-align: center;
+            cursor: pointer;
+            border: 1px solid #eee;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+            box-sizing: border-box;
+            min-height: 88px;
+            min-width: 0;
+        }
+
+        .mistake-card::before {
+            content: "";
+            display: block;
+            width: 100%;
+            padding-top: 100%;
+        }
+
+        .mistake-inner {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 6px;
+        }
+
+        .mistake-card:hover {
+            background: #fff;
+        }
+
+        .mistake-char {
+            font-size: clamp(1.2rem, 3.8vw, 1.6rem);
+            color: #333;
+            font-weight: bold;
+            line-height: 1.2;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .mistake-count {
+            font-size: clamp(0.7rem, 2.5vw, 0.85rem);
+            color: #999;
+            margin-top: 4px;
+            white-space: nowrap;
+        }
+
         /* --- 首页数据看板 (Home Dashboard Container) --- */
         #home-dashboard {
             width: 92%;
@@ -3063,8 +3128,9 @@
                 }
             },
             addMistake: function (char) {
+                if (!fullVocabulary.some(v => v.char === char)) return;
                 if (!this.data.historyMistakes) this.data.historyMistakes = {}; // Backward compatibility
-
+                
                 // 1. Current mistakes (Active list)
                 if (!this.data.mistakes[char]) this.data.mistakes[char] = { count: 0 };
                 this.data.mistakes[char].count++;
@@ -3185,7 +3251,19 @@
                 // 兼容：如果 historyMistakes 不存在（旧存档），即为空
                 const m = source || {};
 
-                const keys = Object.keys(m).sort((a, b) => m[b].count - m[a].count);
+                // 清理异常 key（比如误记的非汉字项）
+                let cleaned = false;
+                Object.keys(m).forEach(k => {
+                    if (!fullVocabulary.some(v => v.char === k)) {
+                        delete m[k];
+                        cleaned = true;
+                    }
+                });
+                if (cleaned) SaveSystem.save();
+
+                const keys = Object.keys(m)
+                    .filter(k => fullVocabulary.some(v => v.char === k))
+                    .sort((a, b) => m[b].count - m[a].count);
 
                 const emptyMsg = document.getElementById('book-empty-msg');
                 if (keys.length === 0) {
@@ -3200,14 +3278,12 @@
                     
                     keys.forEach(k => {
                         const d = document.createElement('div');
-                        d.style.cssText = "background:#F9FAFB; border-radius:16px; padding:15px; text-align:center; cursor:pointer; border:1px solid #eee; transition:all 0.2s; position:relative;";
-                        d.onmouseenter = () => d.style.background = "#fff";
-                        d.onmouseleave = () => d.style.background = "#F9FAFB";
+                        d.className = 'mistake-card';
 
                         // 历史模式下显示累计标记
                         const countTag = this.mode === 'history' ? '累计' : '';
 
-                        d.innerHTML = `<div style="font-size:1.6rem; color:#333; font-weight:bold;">${k}</div><div style="font-size:0.8rem; color:#999; margin-top:5px;">${countTag}错${m[k].count}次</div>`;
+                        d.innerHTML = `<div class="mistake-inner"><div class="mistake-char">${k}</div><div class="mistake-count">${countTag}错${m[k].count}次</div></div>`;
                         // 改用onclick防止滑动误触
                         d.onclick = () => {
                             if (!clickEnabled) return;
@@ -4136,12 +4212,12 @@
                             f.classList.remove('selected'); el.classList.remove('selected');
                             this.matched++;
                             
-                            // 如果完成了所有配对，检查是否有干扰项需要一起消失
+                            // 如果完成了所有配对，让所有字和拼音（含干扰项）一起消失
                             if (this.matched >= this.pairs) {
-                                const distractor = b.querySelector('.bubble[data-distractor="true"]');
-                                if (distractor) {
-                                    distractor.classList.add('matched');
-                                }
+                                b.querySelectorAll('.bubble').forEach(bubble => {
+                                    bubble.classList.add('matched');
+                                    bubble.classList.remove('selected');
+                                });
                             }
                             
                             // 在匹配到倒数第二对后，添加干扰项
