@@ -1,0 +1,1719 @@
+// =============================================
+// 主入口模块 - 识字大冒险
+// =============================================
+// 数据模块已拆分:
+// - js/data/vocabulary.js  (fullVocabulary 词汇数据)
+// - js/data/constants.js   (BADGES, ENCOURAGEMENTS 等常量)
+// 
+// 后续添加新词汇数据集:
+// 1. 创建新文件 js/data/vocabulary_v2.js
+// 2. 在 vocabulary.js 中合并导出
+// =============================================
+
+import { fullVocabulary } from './data/vocabulary.js';
+import { BADGES, ENCOURAGEMENTS, FUN_NICKNAMES, BLIND_BOX_THEMES } from './data/constants.js';
+
+// 获取随机励志语句（带昵称）
+function getRandomEncouragement() {
+    const template = ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)];
+    const nickname = SaveSystem.data.nickname || '小朋友';
+    return template.replace('{name}', nickname);
+}
+
+// 昵称系统
+const NicknameSystem = {
+    init: function () {
+        const modal = document.getElementById('nickname-modal');
+        if (!SaveSystem.data.nickname) {
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('nickname-input').focus();
+            }, 100);
+        } else {
+            modal.style.display = 'none';
+            this.updateDisplay();
+        }
+    },
+    randomNickname: function () {
+        const randomName = FUN_NICKNAMES[Math.floor(Math.random() * FUN_NICKNAMES.length)];
+        document.getElementById('nickname-input').value = randomName;
+    },
+    open: function () {
+        const modal = document.getElementById('nickname-modal');
+        const input = document.getElementById('nickname-input');
+        const closeBtn = document.getElementById('nickname-close');
+        const saveBtn = document.getElementById('nickname-save-btn');
+
+        input.value = SaveSystem.data.nickname || '';
+        closeBtn.style.display = SaveSystem.data.nickname ? 'block' : 'none';
+        saveBtn.innerText = SaveSystem.data.nickname ? '确认修改' : '✨ 开始冒险';
+
+        modal.style.display = 'flex';
+        setTimeout(() => input.focus(), 100);
+    },
+    save: function () {
+        const input = document.getElementById('nickname-input').value.trim();
+        if (!input) {
+            Toast.show('请输入昵称哦～ 😊');
+            return;
+        }
+        const isFirstTime = !SaveSystem.data.nickname;
+        SaveSystem.data.nickname = input;
+        SaveSystem.save();
+        document.getElementById('nickname-modal').style.display = 'none';
+        this.updateDisplay();
+        if (isFirstTime) {
+            HomeDashboard.show();
+            Toast.show(`🎉 欢迎你，${input}！`);
+        } else {
+            Toast.show(`✅ 昵称已修改为：${input}`);
+            if (document.getElementById('dashboard-modal').style.display === 'flex') {
+                Dashboard.open(); // 刷新 Dashboard 显示
+            }
+        }
+    },
+    updateDisplay: function () {
+        const nickname = SaveSystem.data.nickname || '小朋友';
+        document.getElementById('page-title').innerText = `✨ 「${nickname}」的识字大冒险 🎈`;
+
+        const dashName = document.getElementById('user-nickname-dash');
+        if (dashName) dashName.innerText = nickname;
+
+        const welcomeName = document.getElementById('welcome-name');
+        if (welcomeName) welcomeName.innerText = nickname;
+
+        const mapTitle = document.getElementById('map-modal-title');
+        if (mapTitle) mapTitle.innerText = `「${nickname}」的冒险地图`;
+        const bookTitle = document.getElementById('book-modal-title');
+        if (bookTitle) bookTitle.innerText = `「${nickname}」的错题本`;
+    }
+};
+
+// ================= 音频引擎 =================
+const AudioSys = {
+    ctx: null,
+    init: function () {
+        if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+    },
+    playTone: function (freq, attack, decay, vol = 0.2) {
+        if (!this.ctx) this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine'; osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        const now = this.ctx.currentTime;
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(vol, now + attack);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + attack + decay);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(); osc.stop(now + attack + decay);
+    },
+    playClick: function () { this.playTone(800, 0.01, 0.1, 0.1); },
+    playMatch: function () {
+        setTimeout(() => this.playTone(523.25, 0.02, 0.3, 0.15), 0);
+        setTimeout(() => this.playTone(659.25, 0.02, 0.3, 0.15), 80);
+        setTimeout(() => this.playTone(783.99, 0.02, 0.4, 0.15), 160);
+    },
+    playError: function () { this.playTone(150, 0.01, 0.2, 0.2); },
+    playWin: function () {
+        [523, 659, 783, 1046, 1318].forEach((f, i) => {
+            setTimeout(() => this.playTone(f, 0.05, 0.4, 0.15), i * 100);
+        });
+    },
+    playDiceRoll: function () {
+        // 摇筛子音效 - 四阶段：启动混乱→极速旋转→最后冲刺→戛然而止（缩短版）
+        const melody = [
+            // --- 第一阶段：启动与混乱 ---
+            { freq: 220.00, time: 0, vol: 0.15 },
+            { freq: 310.50, time: 70, vol: 0.12 },
+            { freq: 195.00, time: 140, vol: 0.16 },
+            { freq: 370.00, time: 210, vol: 0.13 },
+            { freq: 240.00, time: 280, vol: 0.15 },
+            { freq: 410.00, time: 350, vol: 0.14 },
+            { freq: 280.00, time: 420, vol: 0.16 },
+            { freq: 350.00, time: 490, vol: 0.13 },
+            { freq: 440.00, time: 560, vol: 0.17 },
+            { freq: 290.00, time: 630, vol: 0.14 },
+            { freq: 480.00, time: 700, vol: 0.18 },
+
+            // --- 第二阶段：极速旋转与紧张爬升 ---
+            { freq: 600.00, time: 780, vol: 0.20 },
+            { freq: 450.00, time: 840, vol: 0.18 },
+            { freq: 650.00, time: 900, vol: 0.20 },
+            { freq: 500.00, time: 960, vol: 0.19 },
+            { freq: 720.00, time: 1020, vol: 0.21 },
+            { freq: 550.00, time: 1080, vol: 0.20 },
+            { freq: 780.00, time: 1140, vol: 0.22 },
+            { freq: 600.00, time: 1200, vol: 0.20 },
+            { freq: 850.00, time: 1260, vol: 0.23 },
+            { freq: 680.00, time: 1320, vol: 0.21 },
+            { freq: 920.00, time: 1380, vol: 0.24 },
+            { freq: 750.00, time: 1440, vol: 0.22 },
+            { freq: 980.00, time: 1500, vol: 0.25 },
+
+            // --- 第三阶段：最后冲刺 ---
+            { freq: 1100.00, time: 1570, vol: 0.25 },
+            { freq: 900.00, time: 1630, vol: 0.24 },
+            { freq: 1200.00, time: 1690, vol: 0.26 },
+            { freq: 1000.00, time: 1750, vol: 0.25 },
+            { freq: 1300.00, time: 1810, vol: 0.26 },
+            { freq: 1150.00, time: 1870, vol: 0.26 },
+            { freq: 1400.00, time: 1930, vol: 0.27 },
+            { freq: 1250.00, time: 1990, vol: 0.27 },
+            { freq: 1500.00, time: 2050, vol: 0.28 },
+
+            // --- 第四阶段：戛然而止 ---
+            { freq: 100.00, time: 2500, vol: 0.00 }
+        ];
+        melody.forEach(note => {
+            setTimeout(() => this.playTone(note.freq, 0.01, 0.08, note.vol), note.time);
+        });
+    },
+    playAdventure: function () {
+        // 悦耳的冒险开启音效 - 上升的和弦
+        const melody = [
+            { freq: 523.25, time: 0 },     // C5
+            { freq: 659.25, time: 150 },   // E5
+            { freq: 783.99, time: 300 },   // G5
+            { freq: 1046.50, time: 450 },  // C6
+        ];
+        melody.forEach(note => {
+            setTimeout(() => this.playTone(note.freq, 0.05, 0.4, 0.2), note.time);
+        });
+    },
+    playGiftBox: function () {
+        // 节日礼物音效 - 三阶段：惊喜→开心→温馨余韵
+        const melody = [
+            // --- 第一阶段：惊喜 (0s - 0.8s) 快速上升的竖琴效果 ---
+            { freq: 392.00, time: 0, vol: 0.10 },  // G4 (低音铺垫)
+            { freq: 523.25, time: 100, vol: 0.12 },  // C5
+            { freq: 659.25, time: 200, vol: 0.14 },  // E5
+            { freq: 783.99, time: 300, vol: 0.16 },  // G5
+            { freq: 987.77, time: 400, vol: 0.18 },  // B5 (大七度带来的梦幻感)
+            { freq: 1174.66, time: 550, vol: 0.20 },  // D6 (九度带来的高级感)
+
+            // --- 第二阶段：开心 (0.8s - 2.5s) 高潮主音 ---
+            { freq: 1046.50, time: 750, vol: 0.22 },  // C6 (高潮，主音回归)
+
+            // --- 第三阶段：温馨余韵 (2.5s - 5.0s) 缓慢的回声 ---
+            { freq: 783.99, time: 1800, vol: 0.15 },  // G5 (轻轻的回应)
+            { freq: 659.25, time: 2600, vol: 0.10 },  // E5 (温柔的过度)
+            { freq: 1046.50, time: 3600, vol: 0.08 },  // C6 (极轻的结尾，像星星闪烁)
+            { freq: 523.25, time: 4800, vol: 0.05 },  // C5 (落回根音，安心的感觉)
+        ];
+        melody.forEach(note => {
+            setTimeout(() => this.playTone(note.freq, 0.03, 0.5, note.vol), note.time);
+        });
+    },
+    playDing: function () {
+        // 一锤定音的叮音效
+        this.playTone(1318.51, 0.01, 0.4, 0.25);  // E6 高音，清脆明亮
+    },
+    speak: function (text) {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'zh-CN'; u.rate = 0.9;
+            window.speechSynthesis.speak(u);
+        } else { alert("您的设备暂不支持朗读功能"); }
+    },
+    tensionOsc: null,
+    playTension: function () {
+        if (!this.ctx) this.init();
+        if (this.tensionOsc) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(100, this.ctx.currentTime);
+        // Create a low pulsing effect
+        gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.1, this.ctx.currentTime + 0.5);
+
+        // LFO for tension pulse
+        const lfo = this.ctx.createOscillator();
+        lfo.type = 'sine';
+        lfo.frequency.value = 4; // 4Hz pulse
+        const lfoGain = this.ctx.createGain();
+        lfoGain.gain.value = 50; // Depth of modulation
+        lfo.connect(lfoGain);
+        lfoGain.connect(osc.frequency);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start();
+        lfo.start();
+        this.tensionOsc = { osc, gain, lfo };
+    },
+    stopTension: function () {
+        if (this.tensionOsc) {
+            try {
+                const now = this.ctx.currentTime;
+                this.tensionOsc.gain.gain.linearRampToValueAtTime(0, now + 0.5);
+                this.tensionOsc.osc.stop(now + 0.5);
+                this.tensionOsc.lfo.stop(now + 0.5);
+            } catch (e) { }
+            this.tensionOsc = null;
+        }
+    }
+};
+
+// 通用关闭弹窗并返回首页检测
+function closeOverlay(id) {
+    document.getElementById(id).style.display = 'none';
+    // 检查是否还有其它打开的弹窗
+    const otherModals = Array.from(document.querySelectorAll('.modal-overlay')).some(m => m.style.display === 'flex');
+
+    if (Game.active) {
+        // 如果游戏进行中，且没有其他弹窗，则恢复计时
+        if (!otherModals) {
+            Game.resume();
+        }
+    } else {
+        // 如果游戏未进行，则显示首页仪表盘
+        HomeDashboard.show();
+    }
+}
+
+// ================= 存档与逻辑 =================
+const SaveSystem = {
+    key: 'chinese_game_v10_final',
+    data: {
+        maxLevel: 1, levelStars: {}, mistakes: {}, levelRecords: {},
+        pet: { level: 1, xp: 0, form: 0 },
+        stats: { totalTime: 0, totalWords: [], loginDays: 1, lastLoginDate: new Date().toDateString(), bossDefeats: 0 },
+        badges: [],
+        nickname: '', // 添加昵称字段
+        historyMistakes: {}, // 添加历史错题字段
+        blindBox: { used: 0, success: 0, lastReset: '' } // 盲盒挑战数据
+    },
+    load: function () {
+        const saved = localStorage.getItem(this.key);
+        if (saved) {
+            this.data = { ...this.data, ...JSON.parse(saved) };
+            // 确保 historyMistakes 存在
+            if (!this.data.historyMistakes) this.data.historyMistakes = {};
+
+            // 数据同步：确保当前的错题也被计入历史错题（修复旧存档兼容性问题）
+            // Data Sync: Ensure current mistakes are counted in history (Fixing backward compatibility)
+            for (let key in this.data.mistakes) {
+                const currentCount = this.data.mistakes[key].count;
+                if (!this.data.historyMistakes[key]) {
+                    this.data.historyMistakes[key] = { count: currentCount };
+                } else {
+                    // 如果历史记录少于当前记录（理论不应发生，但为了保险），同步为当前值
+                    if (this.data.historyMistakes[key].count < currentCount) {
+                        this.data.historyMistakes[key].count = currentCount;
+                    }
+                }
+            }
+        }
+        this.checkDailyLogin(); this.updateUI();
+    },
+    save: function () { localStorage.setItem(this.key, JSON.stringify(this.data)); this.updateUI(); },
+    checkDailyLogin: function () {
+        const today = new Date().toDateString();
+        if (this.data.stats.lastLoginDate !== today) {
+            this.data.stats.loginDays++; this.data.stats.lastLoginDate = today;
+            // 重置每日盲盒次数
+            if (!this.data.blindBox) this.data.blindBox = { used: 0, success: 0, lastReset: today };
+            this.data.blindBox.used = 0;
+            this.data.blindBox.success = 0;
+            this.data.blindBox.lastReset = today;
+
+            setTimeout(() => Toast.show("📅 每日打卡！能量 +20"), 1000);
+            PetSystem.addXP(20, false);
+        }
+        // 确保数据结构完整（防止旧存档报错）
+        if (!this.data.blindBox) this.data.blindBox = { used: 0, success: 0, lastReset: today };
+        if (this.data.blindBox.lastReset !== today) {
+            this.data.blindBox.used = 0;
+            this.data.blindBox.success = 0;
+            this.data.blindBox.lastReset = today;
+        }
+    },
+    addMistake: function (char) {
+        if (!fullVocabulary.some(v => v.char === char)) return;
+        if (!this.data.historyMistakes) this.data.historyMistakes = {}; // Backward compatibility
+
+        // 1. Current mistakes (Active list)
+        if (!this.data.mistakes[char]) this.data.mistakes[char] = { count: 0 };
+        this.data.mistakes[char].count++;
+
+        // 2. Historical mistakes (All-time record)
+        if (!this.data.historyMistakes[char]) this.data.historyMistakes[char] = { count: 0 };
+        this.data.historyMistakes[char].count++;
+
+        this.save();
+    },
+    removeMistake: function (char) {
+        if (this.data.mistakes[char]) { delete this.data.mistakes[char]; BadgeSystem.check('cleaner'); this.save(); }
+    },
+    checkNewRecord: function (lvl, time) {
+        const best = this.data.levelRecords[lvl];
+        // 如果是第一次玩（没有旧纪录），保存纪录但返回 false（不显示“打破纪录”提示）
+        if (!best) {
+            this.data.levelRecords[lvl] = time;
+            this.save();
+            return false;
+        }
+        // 只有当新时间优于旧纪录时，才更新并返回 true
+        if (time < best) {
+            this.data.levelRecords[lvl] = time;
+            this.save();
+            return true;
+        }
+        return false;
+    },
+    updateUI: function () {
+        const count = Object.keys(this.data.mistakes).length;
+        const b = document.getElementById('mistake-badge');
+        b.innerText = count; b.style.display = count > 0 ? 'inline-block' : 'none';
+
+        // 更新盲盒剩余次数
+        const bbRemain = document.getElementById('bb-remain-count');
+        if (bbRemain) bbRemain.innerText = 15 - this.data.blindBox.used;
+
+        PetSystem.render();
+    }
+};
+
+const PetSystem = {
+    forms: ["🥚", "🐣", "🐥", "🦉", "🎓"],
+    addXP: function (amount, showToast = true) {
+        SaveSystem.data.pet.xp += amount;
+        const needed = SaveSystem.data.pet.level * 100;
+        if (SaveSystem.data.pet.xp >= needed) {
+            SaveSystem.data.pet.xp -= needed; SaveSystem.data.pet.level++;
+            SaveSystem.data.pet.form = Math.min(SaveSystem.data.pet.level - 1, 4);
+            Toast.show(`🎉 宠物升级啦！Lv.${SaveSystem.data.pet.level}`);
+            BadgeSystem.check('pet_lover');
+        }
+        SaveSystem.save();
+    },
+    render: function () {
+        const pet = SaveSystem.data.pet;
+        const emoji = this.forms[Math.min(pet.form, 4)];
+        document.getElementById('pet-avatar-mini').innerText = emoji;
+        document.getElementById('pet-avatar-big').innerText = emoji;
+        document.getElementById('pet-level-big').innerText = pet.level;
+        document.getElementById('xp-needed').innerText = (pet.level * 100) - pet.xp;
+    }
+};
+
+const BadgeSystem = {
+    check: function (type, val) {
+        const d = SaveSystem.data; let id = null;
+        if (type === 'first_win' && d.maxLevel > 1) id = 'first_win';
+        if (type === 'speedster' && val < 1.5) id = 'speedster';
+        if (type === 'scholar' && d.stats.totalWords.length >= 50) id = 'scholar';
+        if (type === 'persistent' && d.stats.loginDays >= 3) id = 'persistent';
+        if (type === 'cleaner') id = 'cleaner';
+        if (type === 'pet_lover' && d.pet.level >= 3) id = 'pet_lover';
+        if (type === 'boss_killer' && d.stats.bossDefeats >= 1) id = 'boss_killer';
+        if (id && !d.badges.includes(id)) {
+            d.badges.push(id);
+            const info = BADGES.find(b => b.id === id);
+            setTimeout(() => Toast.show(`🏆 解锁勋章：${info.name}`), 500);
+            SaveSystem.save();
+        }
+    }
+};
+
+const MistakeBook = {
+    cur: null,
+    mode: 'current', // 'current' or 'history'
+    switchMode: function (m) {
+        this.mode = m;
+        // 更新 Tab 样式
+        document.querySelectorAll('.book-tab').forEach(el => {
+            if (el.dataset.mode === m) {
+                el.classList.add('active');
+                el.style.background = '#FF8BA7';
+                el.style.color = '#fff';
+            } else {
+                el.classList.remove('active');
+                el.style.background = '#f0f0f0';
+                el.style.color = '#666';
+            }
+        });
+        this.open();
+    },
+    open: function () {
+        Game.pause();
+        document.getElementById('book-modal').style.display = 'flex';
+
+        // 初始化 Tab 样式（如果是第一次打开）
+        if (!document.querySelector('.book-tab.active')) {
+            this.switchMode('current');
+            return;
+        }
+
+        const list = document.getElementById('mistake-list'); list.innerHTML = '';
+
+        // 根据模式选择数据源
+        const source = this.mode === 'current' ? SaveSystem.data.mistakes : SaveSystem.data.historyMistakes;
+        // 兼容：如果 historyMistakes 不存在（旧存档），即为空
+        const m = source || {};
+
+        // 清理异常 key（比如误记的非汉字项）
+        let cleaned = false;
+        Object.keys(m).forEach(k => {
+            if (!fullVocabulary.some(v => v.char === k)) {
+                delete m[k];
+                cleaned = true;
+            }
+        });
+        if (cleaned) SaveSystem.save();
+
+        const keys = Object.keys(m)
+            .filter(k => fullVocabulary.some(v => v.char === k))
+            .sort((a, b) => m[b].count - m[a].count);
+
+        const emptyMsg = document.getElementById('book-empty-msg');
+        if (keys.length === 0) {
+            emptyMsg.style.display = 'block';
+            emptyMsg.innerText = this.mode === 'current' ? '太棒了！当前没有错题哦～' : '还没有历史错题记录呢～';
+        } else {
+            emptyMsg.style.display = 'none';
+
+            // 防止打开时立即误触
+            let clickEnabled = false;
+            setTimeout(() => { clickEnabled = true; }, 300);
+
+            keys.forEach(k => {
+                const d = document.createElement('div');
+                d.className = 'mistake-card';
+
+                // 历史模式下显示累计标记
+                const countTag = this.mode === 'history' ? '累计' : '';
+
+                d.innerHTML = `<div class="mistake-inner"><div class="mistake-char">${k}</div><div class="mistake-count">${countTag}错${m[k].count}次</div></div>`;
+                // 改用onclick防止滑动误触
+                d.onclick = () => {
+                    if (!clickEnabled) return;
+                    this.detail(k);
+                };
+                list.appendChild(d);
+            });
+        }
+    },
+    detail: function (char) {
+        this.cur = char;
+        const d = fullVocabulary.find(v => v.char === char) || { char, pinyin: '?', words: [], desc: '暂无' };
+        document.getElementById('card-char').innerText = d.char;
+        document.getElementById('card-pinyin').innerText = d.pinyin;
+        document.getElementById('card-words').innerText = d.words ? d.words.join('，') : '暂无';
+        document.getElementById('card-desc').innerText = d.desc || '暂无';
+
+        // 根据模式调整按钮文字
+        const actionBtn = document.getElementById('mistake-action-btn');
+        if (this.mode === 'history') {
+            actionBtn.innerText = '练习一下';
+        } else {
+            actionBtn.innerText = '我学会了';
+        }
+
+        document.getElementById('detail-modal').style.display = 'flex';
+    },
+    resolveCurrent: function () {
+        if (this.cur) {
+            if (this.mode === 'current') {
+                SaveSystem.removeMistake(this.cur);
+                Toast.show('太棒了！消灭了一个错题！');
+            } else {
+                // 历史模式下只是练习，不删除
+                Toast.show('温故而知新，你真棒！');
+            }
+            document.getElementById('detail-modal').style.display = 'none';
+            // 刷新列表时保持当前模式
+            this.open();
+            AudioSys.playWin();
+        }
+    }
+};
+
+const HomeDashboard = {
+    quotes: ["今天学什么呢？", "每一个字都是一个小秘密哦！", "你进步得真快！", "休息一下，喝口水吧～", "我们一起去大冒险吧！", "识字真有趣，对吧？", "你是最棒的小学生！"],
+    update: function () {
+        const s = SaveSystem.data.stats;
+        NicknameSystem.updateDisplay();
+
+        // 动态计算进度
+        const totalLvls = Game.config.length || 1;
+        const progress = Math.min(100, Math.floor(((SaveSystem.data.maxLevel - 1) / totalLvls) * 100));
+        document.getElementById('h-stat-progress').innerText = progress + '%';
+
+        document.getElementById('h-stat-words').innerText = s.totalWords.length;
+        document.getElementById('h-stat-mistakes').innerText = Object.keys(SaveSystem.data.mistakes).length;
+        document.getElementById('h-stat-days').innerText = s.loginDays;
+        document.getElementById('h-stat-time').innerText = Math.floor(s.totalTime / 60);
+
+        const avg = s.totalWords.length > 0 ? (s.totalTime / s.totalWords.length).toFixed(1) : '-';
+        document.getElementById('h-stat-speed').innerText = avg === '-' ? '-' : avg + 's';
+        document.getElementById('level-title').innerText = `第${SaveSystem.data.maxLevel}关`;
+
+        // 更新首页等级显示
+        const homeLvl = document.getElementById('home-lvl-num');
+        if (homeLvl) homeLvl.innerText = SaveSystem.data.pet.level;
+
+        // 更新 IP 形象（根据宠物等级/形态）
+        const pet = SaveSystem.data.pet;
+        document.getElementById('pet-home-avatar').innerText = PetSystem.forms[pet.form];
+    },
+    toggleStats: function () {
+        const grid = document.getElementById('home-stats-grid');
+        const btn = document.getElementById('stats-toggle');
+        const isExp = grid.classList.toggle('expanded');
+        btn.innerText = isExp ? '🔼 收起成长纪录' : '📊 查看我的成长纪录';
+        AudioSys.playClick();
+    },
+    interact: function () {
+        const pet = document.getElementById('pet-home-avatar');
+        const shadow = document.getElementById('pet-home-shadow');
+        const bubble = document.getElementById('pet-speech');
+
+        // 跳跃动作与阴影配合
+        pet.classList.remove('pet-jump');
+        shadow.classList.remove('pet-jumping-shadow');
+        void pet.offsetWidth;
+        pet.classList.add('pet-jump');
+        shadow.classList.add('pet-jumping-shadow');
+
+        // 随机说话
+        bubble.innerText = this.quotes[Math.floor(Math.random() * this.quotes.length)];
+        bubble.classList.add('active');
+
+        AudioSys.playMatch();
+
+        if (this.speechTimer) clearTimeout(this.speechTimer);
+        this.speechTimer = setTimeout(() => {
+            bubble.classList.remove('active');
+            shadow.classList.remove('pet-jumping-shadow');
+        }, 2500);
+    },
+    show: function () {
+        this.update();
+        document.getElementById('home-dashboard').style.display = 'flex';
+        document.getElementById('game-board').style.display = 'none';
+        document.body.classList.remove('game-active');
+    },
+    hide: function () {
+        document.getElementById('home-dashboard').style.display = 'none';
+        document.getElementById('game-board').style.display = 'grid';
+    }
+};
+
+const Dashboard = {
+    open: function () {
+        const s = SaveSystem.data.stats;
+        document.getElementById('stat-days').innerText = s.loginDays;
+        document.getElementById('stat-words').innerText = s.totalWords.length;
+        document.getElementById('stat-time').innerText = Math.floor(s.totalTime / 60);
+        const avg = s.totalWords.length > 0 ? (s.totalTime / s.totalWords.length).toFixed(1) : '-';
+        document.getElementById('stat-speed').innerText = avg;
+        const badgeList = document.getElementById('badge-list'); badgeList.innerHTML = '';
+        BADGES.forEach(b => {
+            const unlocked = SaveSystem.data.badges.includes(b.id);
+            const d = document.createElement('div');
+            d.className = `badge-item ${unlocked ? 'unlocked' : ''}`;
+
+            let iconHTML = b.icon;
+            // Special display for Boss Killer badge
+            if (b.id === 'boss_killer' && unlocked) {
+                const kills = SaveSystem.data.stats.bossDefeats || 0;
+                iconHTML += `<div style="font-size:0.6rem; position:absolute; bottom:-5px; right:-5px; background:#FF4757; color:#fff; border-radius:10px; padding:2px 5px; font-weight:bold;">x${kills}</div>`;
+            }
+
+            d.innerHTML = iconHTML;
+            d.style.position = 'relative'; // For positioning the counter
+            d.onpointerdown = () => { if (unlocked) Toast.show(`${b.icon} ${b.name} ${b.id === 'boss_killer' ? `(击败 ${SaveSystem.data.stats.bossDefeats} 次)` : ''}`); };
+            badgeList.appendChild(d);
+        });
+        document.getElementById('dashboard-modal').style.display = 'flex';
+    }
+};
+
+const Game = {
+    curr: 1, active: false, sel: null, matched: 0, config: [], startT: 0, timer: null, pairs: 0,
+    paused: false, pauseT: 0, isBossMode: false, bossTimeLimit: 20,
+    pause: function () {
+        if (!this.active || this.paused) return;
+        this.paused = true;
+        this.pauseT = Date.now();
+    },
+    resume: function () {
+        if (!this.active || !this.paused) return;
+        this.startT += (Date.now() - this.pauseT);
+        this.paused = false;
+    },
+    openBlindBox: function () {
+        if (this.openingBox) return;
+
+        // 检查次数限制
+        if (SaveSystem.data.blindBox.used >= 15) {
+            Toast.show('今日盲盒机会已用完啦，明天再来吧！🌟');
+            return;
+        }
+
+        // 检查是否通关20关
+        if (SaveSystem.data.maxLevel < 20) {
+            const remaining = 20 - SaveSystem.data.maxLevel;
+            Toast.show(`🔒 盲盒挑战解锁中...\n当前进度：${SaveSystem.data.maxLevel}/20 关\n还需通关 ${remaining} 关即可解锁！`);
+            return;
+        }
+
+        this.openingBox = true;
+        AudioSys.playClick();
+
+        // 直接进入简化的盲盒选择界面
+        this.showBlindBoxChallenge();
+    },
+
+    showBlindBoxChallenge: function () {
+        // 创建抽倒计时弹窗
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 300;';
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.style.cssText = 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; text-align: center; max-width: 380px; color: #fff; animation: popIn 0.3s ease; position: relative; overflow: hidden;';
+
+        card.innerHTML = `
+                    <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); animation: float 6s ease-in-out infinite;"></div>
+                    <div style="position: absolute; top: 10%; left: 10%; width: 20px; height: 20px; background: rgba(255,255,255,0.3); border-radius: 50%; animation: sparkle 2s ease-in-out infinite;"></div>
+                    <div style="position: absolute; top: 20%; right: 15%; width: 15px; height: 15px; background: rgba(255,255,255,0.4); border-radius: 50%; animation: sparkle 2.5s ease-in-out infinite 0.5s;"></div>
+                    <div style="position: absolute; bottom: 25%; left: 20%; width: 12px; height: 12px; background: rgba(255,255,255,0.2); border-radius: 50%; animation: sparkle 3s ease-in-out infinite 1s;"></div>
+                    <div style="position: relative; z-index: 2;">
+                        <div style="font-size: 4rem; margin-bottom: 20px; animation: bounce 2s infinite, rotate 4s linear infinite; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); transform-origin: center;">🎲</div>
+                        <h2 style="margin-bottom: 15px; text-shadow: 0 2px 4px rgba(0,0,0,0.3); font-size: 1.4rem; letter-spacing: 1px; animation: glow 3s ease-in-out infinite;">摇出你的挑战时间</h2>
+                        <p style="color: rgba(255,255,255,0.85); margin-bottom: 25px; line-height: 1.5; font-size: 0.95rem; padding: 0 10px; animation: pulse 2s ease-in-out infinite;">
+                            ✨ 看手气！系统将随机分配挑战时间 ✨
+                        </p>
+                        <div id="countdown-roulette" style="background: rgba(255,255,255,0.15); padding: 25px; border-radius: 20px; margin-bottom: 25px; backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.2); box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 8px 32px rgba(0,0,0,0.2); animation: breathe 3s ease-in-out infinite;">
+                            <div style="font-size: 3rem; font-weight: 900; color: #fff; text-shadow: 0 3px 6px rgba(0,0,0,0.4); margin-bottom: 8px; animation: numberPulse 1.5s ease-in-out infinite;" id="roulette-display">?</div>
+                            <div style="font-size: 0.9rem; color: rgba(255,255,255,0.8); font-weight: 600;" id="roulette-status">准备摇筛子</div>
+                        </div>
+                        <button id="draw-btn" style="width: 100%; padding: 15px; background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%); color: #667eea; border: none; border-radius: 25px; font-size: 1.2rem; font-weight: bold; cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.8); transition: all 0.3s ease; margin-bottom: 15px; position: relative; overflow: hidden; animation: buttonGlow 4s ease-in-out infinite;">
+                            <span style="position: relative; z-index: 2;">🎲 试试手气</span>
+                            <div style="position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); transition: left 0.5s; animation: shimmer 3s ease-in-out infinite;"></div>
+                        </button>
+                        <div onclick="Game.cancelBlindBox('${modal.id = 'blind-box-modal-' + Date.now()}')" style="color: rgba(255,255,255,0.7); font-size: 0.9rem; cursor: pointer; text-decoration: underline; padding: 8px; border-radius: 15px; transition: all 0.2s; display: inline-block; animation: fadeInOut 4s ease-in-out infinite;">
+                            取消
+                        </div>
+                    </div>
+                    <style>
+                        @keyframes sparkle {
+                            0%, 100% { opacity: 0; transform: scale(0); }
+                            50% { opacity: 1; transform: scale(1); }
+                        }
+                        @keyframes rotate {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                        }
+                        @keyframes glow {
+                            0%, 100% { text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+                            50% { text-shadow: 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(255,255,255,0.5); }
+                        }
+                        @keyframes breathe {
+                            0%, 100% { transform: scale(1); }
+                            50% { transform: scale(1.02); }
+                        }
+                        @keyframes numberPulse {
+                            0%, 100% { transform: scale(1); }
+                            50% { transform: scale(1.1); }
+                        }
+                        @keyframes buttonGlow {
+                            0%, 100% { box-shadow: 0 6px 20px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.8); }
+                            50% { box-shadow: 0 6px 20px rgba(102,126,234,0.3), inset 0 1px 0 rgba(255,255,255,0.8); }
+                        }
+                        @keyframes shimmer {
+                            0% { left: -100%; }
+                            50% { left: 100%; }
+                            100% { left: -100%; }
+                        }
+                        @keyframes fadeInOut {
+                            0%, 100% { opacity: 0.7; }
+                            50% { opacity: 1; }
+                        }
+                    </style>
+                `;
+
+        modal.appendChild(card);
+        document.body.appendChild(modal);
+
+        // 摇筛子逻辑
+        document.getElementById('draw-btn').onclick = () => {
+            this.startDiceRoll(modal);
+        };
+
+        // 添加按钮悬停效果（安全检查）
+        const btn = document.getElementById('draw-btn');
+        if (btn) {
+            btn.onmouseenter = () => {
+                btn.style.transform = 'translateY(-2px)';
+                btn.style.boxShadow = '0 8px 25px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.8)';
+                const shimmer = btn.querySelector('div');
+                if (shimmer) shimmer.style.left = '0%';
+            };
+            btn.onmouseleave = () => {
+                btn.style.transform = 'translateY(0)';
+                btn.style.boxShadow = '0 6px 20px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.8)';
+                const shimmer = btn.querySelector('div');
+                if (shimmer) shimmer.style.left = '100%';
+            };
+        }
+
+        this.openingBox = false;
+    },
+
+    startDiceRoll: function (modal) {
+        const display = document.getElementById('roulette-display');
+        const status = document.getElementById('roulette-status');
+        const btn = document.getElementById('draw-btn');
+
+        btn.disabled = true;
+        btn.innerText = '手气不错中...';
+        btn.style.opacity = '0.6';
+        status.innerText = '筛子滚动中...';
+
+        // 播放摇筛子音效
+        AudioSys.playDiceRoll();
+
+        // 时间选项（简化版）
+        const timeOptions = [10, 13, 15, 18, 20, 25, 30];
+        const selectedTime = timeOptions[Math.floor(Math.random() * timeOptions.length)];
+
+        // 摇筛子动画
+        let rollCount = 0;
+        const maxRolls = 15;
+        const rollInterval = setInterval(() => {
+            const randomTime = timeOptions[Math.floor(Math.random() * timeOptions.length)];
+            display.innerText = randomTime + 's';
+            rollCount++;
+
+            if (rollCount >= maxRolls) {
+                clearInterval(rollInterval);
+
+                // 播放一锤定音音效
+                AudioSys.playDing();
+
+                // 显示最终结果
+                display.innerText = selectedTime + 's';
+
+                // 根据时间设置颜色和描述
+                if (selectedTime <= 13) {
+                    display.style.color = '#ff4757';
+                    status.innerText = '😱 极限挑战！';
+                } else if (selectedTime <= 18) {
+                    display.style.color = '#ffa726';
+                    status.innerText = '😤 困难模式！';
+                } else if (selectedTime <= 25) {
+                    display.style.color = '#26de81';
+                    status.innerText = '😊 标准模式';
+                } else {
+                    display.style.color = '#45aaf2';
+                    status.innerText = '😌 轻松模式';
+                }
+
+                btn.innerHTML = `
+                            <span style="position: relative; z-index: 2; animation: bounce 1s infinite;">🚀 开始挑战</span>
+                            <div style="position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent); animation: rainbow-shimmer 1.5s ease-in-out infinite;"></div>
+                        `;
+                btn.disabled = false;
+                btn.style.cssText += `
+                            opacity: 1; 
+                            animation: mega-pulse 1.2s ease-in-out infinite, rainbow-glow 2s ease-in-out infinite; 
+                            transform: scale(1.05); 
+                            background: linear-gradient(45deg, #ff8787, #6ee7dd, #66d9ef, #b8e994, #ffd93d, #ffb8f5, #74b9ff) !important;
+                            background-size: 400% 400% !important;
+                            animation: mega-pulse 1.2s ease-in-out infinite, rainbow-glow 2s ease-in-out infinite, gradient-shift 3s ease-in-out infinite !important;
+                        `;
+
+                // 添加动态样式
+                const style = document.createElement('style');
+                style.innerHTML = `
+                            @keyframes mega-pulse {
+                                0%, 100% { transform: scale(1.05); box-shadow: 0 0 20px rgba(255,135,135,0.7); }
+                                50% { transform: scale(1.1); box-shadow: 0 0 30px rgba(255,135,135,0.9), 0 0 40px rgba(110,231,221,0.7); }
+                            }
+                            @keyframes rainbow-glow {
+                                0% { box-shadow: 0 0 20px #ff8787, 0 0 30px #ff8787, 0 0 40px #ff8787; }
+                                25% { box-shadow: 0 0 20px #6ee7dd, 0 0 30px #6ee7dd, 0 0 40px #6ee7dd; }
+                                50% { box-shadow: 0 0 20px #66d9ef, 0 0 30px #66d9ef, 0 0 40px #66d9ef; }
+                                75% { box-shadow: 0 0 20px #ffd93d, 0 0 30px #ffd93d, 0 0 40px #ffd93d; }
+                                100% { box-shadow: 0 0 20px #ff8787, 0 0 30px #ff8787, 0 0 40px #ff8787; }
+                            }
+                            @keyframes gradient-shift {
+                                0% { background-position: 0% 50%; }
+                                50% { background-position: 100% 50%; }
+                                100% { background-position: 0% 50%; }
+                            }
+                            @keyframes rainbow-shimmer {
+                                0% { left: -100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent); }
+                                50% { left: 0%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent); }
+                                100% { left: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent); }
+                            }
+                        `;
+                document.head.appendChild(style);
+
+                // 更新按钮事件
+                btn.onclick = () => {
+                    document.body.removeChild(modal);
+                    this.startBlindBoxChallenge(selectedTime);
+                };
+            }
+        }, 120);
+
+        AudioSys.playClick();
+    },
+
+    showBlindBoxSuccess: function (emoji, message, bonus) {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 300;';
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.style.cssText = 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; text-align: center; max-width: 350px; color: #fff; animation: popIn 0.3s ease;';
+
+        card.innerHTML = `
+                    <div style="font-size: 4rem; margin-bottom: 15px; animation: bounce 1s infinite;">${emoji}</div>
+                    <h2 style="margin-bottom: 10px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">盲盒挑战成功！</h2>
+                    <p style="margin-bottom: 20px; line-height: 1.5; font-size: 1rem;">${message}</p>
+                    <div style="background: rgba(255,255,255,0.15); padding: 15px; border-radius: 15px; margin-bottom: 20px;">
+                        <div style="font-size: 1.1rem; margin-bottom: 5px;">🎁 奖励能量</div>
+                        <div style="font-size: 2rem; font-weight: 900; color: #FFD93D;">+${bonus}</div>
+                    </div>
+                `;
+
+        const btn = document.createElement('button');
+        btn.innerText = '太棒了！';
+        btn.style.cssText = 'width: 100%; padding: 12px; background: #fff; color: #667eea; border: none; border-radius: 20px; font-size: 1.1rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2);';
+        btn.onclick = () => {
+            document.body.removeChild(modal);
+            HomeDashboard.show();
+        };
+
+        card.appendChild(btn);
+        modal.appendChild(card);
+        document.body.appendChild(modal);
+
+        // 3秒后自动关闭
+        setTimeout(() => {
+            if (document.body.contains(modal)) {
+                document.body.removeChild(modal);
+                HomeDashboard.show();
+            }
+        }, 3000);
+    },
+
+    closeBlindBoxSuccess: function (modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal && document.body.contains(modal)) {
+            document.body.removeChild(modal);
+        }
+        // 确保返回首页
+        HomeDashboard.show();
+    },
+
+    cancelBlindBox: function (modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) document.body.removeChild(modal);
+        this.openingBox = false;
+    },
+
+    startBlindBoxChallenge: function (timeLimit) {
+        const totalLevels = this.config.length;
+        const maxUnlocked = SaveSystem.data.maxLevel;
+
+        let targetId;
+        if (Math.random() < 0.8 || maxUnlocked >= totalLevels) {
+            targetId = Math.floor(Math.random() * maxUnlocked) + 1;
+        } else {
+            targetId = Math.floor(Math.random() * (totalLevels - maxUnlocked)) + maxUnlocked + 1;
+        }
+
+        // 直接开始盲盒挑战，无预览
+        this.isBlindBoxMode = true;
+        this.blindBoxTimeLimit = timeLimit;
+        SaveSystem.data.blindBox.used++;
+        SaveSystem.save();
+
+        // 随机选择一套可爱动物背景主题
+        const animalThemes = [
+            'bb-theme-bunny',      // 🐰 小兔子主题
+            'bb-theme-cat',        // 🐱 小猫咪主题  
+            'bb-theme-frog',       // 🐸 小青蛙主题
+            'bb-theme-penguin',    // 🐧 小企鹅主题
+            'bb-theme-fox',        // 🦊 小狐狸主题
+            'bb-theme-bear',       // 🐻 小熊主题
+            'bb-theme-butterfly'   // 🦋 小蝴蝶主题
+        ];
+        const randomTheme = animalThemes[Math.floor(Math.random() * animalThemes.length)];
+        document.body.className = `game-active blind-box-mode ${randomTheme}`;
+
+        // 关闭地图弹窗
+        document.getElementById('map-modal').style.display = 'none';
+
+        // 直接开始游戏
+        this.curr = targetId;
+        document.getElementById('level-title').innerText = `🎁 盲盒第${targetId}关`;
+        document.body.classList.add('game-active');
+        HomeDashboard.hide();
+
+        // 渲染游戏并开始计时
+        this.render(this.config[targetId - 1].words);
+        // 注意：不在这里设置startT，等准备倒计时结束后再设置
+        clearInterval(this.timer);
+
+        const tEl = document.getElementById('timer-value');
+        tEl.innerText = timeLimit.toFixed(1);
+        tEl.style.color = '#2c3e50';
+        tEl.style.animation = '';
+        tEl.style.textShadow = '0 1px 2px rgba(255,255,255,0.8)';
+
+        // 在倒计时旁边显示准备倒计时
+        const timerContainer = tEl.parentElement;
+        const prepareCountdown = document.createElement('div');
+        prepareCountdown.id = 'prepare-countdown';
+        prepareCountdown.style.cssText = 'position: absolute; left: -100px; top: 50%; transform: translateY(-50%); background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%); color: white; padding: 8px 16px; border-radius: 20px; font-size: 1.2rem; font-weight: bold; box-shadow: 0 4px 15px rgba(255,107,107,0.4); animation: countdown-pulse 1s ease-in-out infinite;';
+        prepareCountdown.innerHTML = '准备 5';
+        timerContainer.style.position = 'relative';
+        timerContainer.appendChild(prepareCountdown);
+
+        // 禁用游戏交互
+        const gameBoard = document.getElementById('game-board');
+        gameBoard.style.pointerEvents = 'none';
+        gameBoard.style.opacity = '0.7';
+
+        // 播放温馨的礼物音效
+        AudioSys.playGiftBox();
+
+        // 添加倒计时动画样式
+        const style = document.createElement('style');
+        style.innerHTML = `
+                    @keyframes countdown-pulse {
+                        0%, 100% { transform: translateY(-50%) scale(1); }
+                        50% { transform: translateY(-50%) scale(1.1); }
+                    }
+                `;
+        document.head.appendChild(style);
+
+        // 5秒倒计时
+        let countdown = 5;
+        const countdownTimer = setInterval(() => {
+            countdown--;
+            if (countdown > 0) {
+                prepareCountdown.innerHTML = `准备 ${countdown}`;
+            } else {
+                clearInterval(countdownTimer);
+                timerContainer.removeChild(prepareCountdown);
+
+                // 优雅的边框流光动效
+                gameBoard.style.position = 'relative';
+
+                const borderGlow = document.createElement('div');
+                borderGlow.style.cssText = `
+                            position: absolute; 
+                            top: 0; left: 0; right: 0; bottom: 0; 
+                            border: 3px solid transparent;
+                            border-radius: 12px;
+                            background: linear-gradient(white, white) padding-box,
+                                        linear-gradient(90deg, 
+                                            transparent 0%, 
+                                            rgba(0, 255, 136, 0.8) 25%, 
+                                            rgba(0, 255, 255, 0.9) 50%, 
+                                            rgba(0, 136, 255, 0.8) 75%, 
+                                            transparent 100%) border-box;
+                            background-size: 300% 100%;
+                            background-position: 200% 0;
+                            pointer-events: none;
+                            z-index: 10;
+                            animation: border-flow 1.2s ease-out;
+                            box-shadow: 0 0 20px rgba(0, 255, 200, 0.4), inset 0 0 20px rgba(0, 255, 200, 0.2);
+                        `;
+
+                const style = document.createElement('style');
+                style.innerHTML = `
+                            @keyframes border-flow {
+                                0% { 
+                                    background-position: 200% 0;
+                                    opacity: 0;
+                                    box-shadow: 0 0 0 rgba(0, 255, 200, 0);
+                                }
+                                30% { 
+                                    opacity: 1;
+                                    box-shadow: 0 0 30px rgba(0, 255, 200, 0.6), inset 0 0 20px rgba(0, 255, 200, 0.3);
+                                }
+                                70% { 
+                                    background-position: -100% 0;
+                                    opacity: 1;
+                                    box-shadow: 0 0 30px rgba(0, 255, 200, 0.6), inset 0 0 20px rgba(0, 255, 200, 0.3);
+                                }
+                                100% { 
+                                    background-position: -200% 0;
+                                    opacity: 0;
+                                    box-shadow: 0 0 0 rgba(0, 255, 200, 0);
+                                }
+                            }
+                        `;
+                document.head.appendChild(style);
+
+                gameBoard.appendChild(borderGlow);
+
+                // 1.2秒后移除动效并恢复游戏交互
+                setTimeout(() => {
+                    if (gameBoard.contains(borderGlow)) {
+                        gameBoard.removeChild(borderGlow);
+                    }
+                    gameBoard.style.pointerEvents = 'auto';
+                    gameBoard.style.opacity = '1';
+                    gameBoard.style.transition = 'opacity 0.2s ease';
+                    // 开始正式计时
+                    this.startBlindBoxTimer(timeLimit);
+                }, 1200);
+            }
+        }, 1000);
+    },
+
+    startBlindBoxTimer: function (timeLimit) {
+        // 在这里设置开始时间，准备倒计时已经结束
+        this.startT = Date.now();
+        const tEl = document.getElementById('timer-value');
+        this.timer = setInterval(() => {
+            if (this.active && !this.paused) {
+                const elapsed = (Date.now() - this.startT) / 1000;
+                const remaining = timeLimit - elapsed;
+                if (remaining <= 0) {
+                    this.failBlindBoxChallenge();
+                } else {
+                    tEl.innerText = remaining.toFixed(1);
+                    if (remaining <= 5) {
+                        tEl.style.color = '#FF4757';
+                        tEl.style.animation = 'pulse 0.5s infinite';
+                        tEl.style.textShadow = '0 1px 2px rgba(255,255,255,0.9)';
+                    } else if (remaining <= 10) {
+                        tEl.style.color = '#FFA726';
+                        tEl.style.textShadow = '0 1px 2px rgba(255,255,255,0.8)';
+                    } else {
+                        tEl.style.color = '#2c3e50';
+                        tEl.style.textShadow = '0 1px 2px rgba(255,255,255,0.8)';
+                    }
+                }
+            }
+        }, 100);
+    },
+    init: function () {
+        const ppl = 6;
+        const total = Math.ceil(fullVocabulary.length / ppl);
+        this.config = []; // Reset config
+        for (let i = 0; i < total; i++) this.config.push({ id: i + 1, words: fullVocabulary.slice(i * ppl, (i + 1) * ppl) });
+    },
+    startBossLevel: function () {
+        this.isBossMode = true;
+        this.bossTimeLimit = 13; // Set correct time limit
+        document.getElementById('boss-warning-modal').style.display = 'none';
+        document.getElementById('boss-fail-modal').style.display = 'none';
+        document.body.classList.add('boss-mode');
+
+        // Generate Content: 6 words (priority: history > current > random)
+        let pool = [];
+        // 1. Add historical mistakes
+        const history = Object.keys(SaveSystem.data.historyMistakes || {});
+        history.forEach(char => {
+            const found = fullVocabulary.find(v => v.char === char);
+            if (found) pool.push(found);
+        });
+        // 2. Add current mistakes if needed
+        if (pool.length < 6) {
+            const current = Object.keys(SaveSystem.data.mistakes || {});
+            current.forEach(char => {
+                if (!pool.find(p => p.char === char)) {
+                    const found = fullVocabulary.find(v => v.char === char);
+                    if (found) pool.push(found);
+                }
+            });
+        }
+        // 3. Fill with random words if still < 6
+        while (pool.length < 6) {
+            const rand = fullVocabulary[Math.floor(Math.random() * fullVocabulary.length)];
+            if (!pool.includes(rand)) pool.push(rand);
+        }
+
+        // Slice to exactly 6 and shuffle
+        pool = pool.sort(() => 0.5 - Math.random()).slice(0, 6);
+
+        document.getElementById('map-modal').style.display = 'none';
+        document.getElementById('win-modal').style.display = 'none';
+        document.getElementById('level-title').innerText = `👹 大魔王关卡`;
+        document.body.classList.add('game-active');
+        HomeDashboard.hide();
+
+        AudioSys.playTension(); // Start tension audio
+
+        this.render(pool);
+        this.active = true;
+        this.startT = Date.now();
+        clearInterval(this.timer);
+
+        // Timer Logic for Boss Mode
+        const tEl = document.getElementById('timer-value');
+        tEl.innerText = this.bossTimeLimit.toFixed(1);
+
+        this.timer = setInterval(() => {
+            if (this.active && !this.paused) {
+                const elapsed = (Date.now() - this.startT) / 1000;
+                const remaining = this.bossTimeLimit - elapsed;
+
+                if (remaining <= 0) {
+                    this.failBossLevel();
+                } else {
+                    tEl.innerText = remaining.toFixed(1);
+                }
+            }
+        }, 100);
+    },
+    failBossLevel: function () {
+        this.active = false; clearInterval(this.timer);
+        AudioSys.stopTension(); // Stop audio
+        AudioSys.playError();
+        document.body.classList.remove('boss-mode');
+        // Shake effect on board
+        const b = document.getElementById('game-board');
+        b.classList.add('shake');
+        setTimeout(() => b.classList.remove('shake'), 500);
+
+        setTimeout(() => {
+            document.getElementById('boss-fail-modal').style.display = 'flex';
+        }, 800);
+    },
+    failBlindBoxChallenge: function () {
+        this.active = false;
+        clearInterval(this.timer);
+        AudioSys.playError();
+
+        // 重置计时器样式
+        const tEl = document.getElementById('timer-value');
+        tEl.style.color = '#F59E0B';
+        tEl.style.animation = '';
+
+        // 重置盲盒模式
+        this.isBlindBoxMode = false;
+        this.blindBoxTimeLimit = null;
+        document.body.classList.remove('blind-box-mode', 'bb-theme-bunny', 'bb-theme-cat', 'bb-theme-frog', 'bb-theme-penguin', 'bb-theme-fox', 'bb-theme-bear', 'bb-theme-butterfly');
+
+        // 震动效果
+        const b = document.getElementById('game-board');
+        b.classList.add('shake');
+        setTimeout(() => b.classList.remove('shake'), 500);
+
+        Toast.show('⏰ 时间到！盲盒挑战失败，再接再厉！');
+
+        setTimeout(() => {
+            HomeDashboard.show();
+        }, 1500);
+    },
+    showLevelMap: function () {
+        AudioSys.playAdventure();
+        document.getElementById('map-modal').style.display = 'flex';
+        document.getElementById('win-modal').style.display = 'none';
+        const map = document.getElementById('level-map'); map.innerHTML = '';
+
+        // 防止打开地图时立即误触
+        let clickEnabled = false;
+        setTimeout(() => { clickEnabled = true; }, 400);
+
+        this.config.forEach((l, i) => {
+            const btn = document.createElement('div');
+            const levelId = i + 1;
+            const maxLvl = SaveSystem.data.maxLevel;
+            const locked = levelId > maxLvl;
+            const stars = SaveSystem.data.levelStars[levelId] || 0;
+
+            // 样式构建
+            let css = `background:${locked ? '#F3F4F6' : '#fff'}; border-radius:18px; aspect-ratio:1; display:flex; flex-direction:column; justify-content:center; align-items:center; cursor:pointer; border:1px solid ${stars ? '#FFD93D' : '#eee'}; box-shadow:0 4px 0 ${stars ? '#FFE082' : '#eee'}; touch-action: manipulation;`;
+
+            btn.style.cssText = css;
+            if (stars) btn.style.background = "#FFF9C4";
+
+            // 当前最高关卡添加红色呼吸高亮
+            if (levelId === maxLvl) {
+                btn.classList.add('pulse-red');
+            }
+
+            btn.innerHTML = `<div style="font-weight:bold; font-family:'Nunito'; font-size:1.2rem; color:${locked ? '#ccc' : '#555'}">${levelId}</div>`;
+            const record = SaveSystem.data.levelRecords[levelId];
+            if (!locked) {
+                btn.innerHTML += stars ? `<div style="font-size:0.6rem; margin-top:2px;">⭐⭐⭐</div>` : `<div style="font-size:0.7rem; color:#aaa; margin-top:2px;">GO</div>`;
+                if (record) btn.innerHTML += `<div style="font-size:0.65rem; color:#2E86C1; margin-top:4px; font-family:'Nunito'; font-weight:800;">⏱️ ${record}s</div>`;
+            }
+
+            // 防误触逻辑：改用原生 onclick。
+            // 原生 click 事件在发生滚动/滑动时不会触发，天然解决了“滑动误触”问题。
+            // 之前使用 onpointerdown 会导致一按就触发，改用 onclick 即可修复，
+            // 同时避免了自定义位移检测阈值过严导致的点不进去的问题。
+            if (!locked) {
+                btn.onclick = () => {
+                    if (!clickEnabled) return;
+                    this.requestLevel(levelId);
+                };
+            }
+            map.appendChild(btn);
+        });
+    },
+    pendingLevel: null,
+    requestLevel: function (id) {
+        // 如果是当前正在挑战的最高关卡，直接进入
+        if (id === SaveSystem.data.maxLevel) {
+            this.startLevel(id);
+        } else {
+            // 如果是旧关卡，弹出确认框
+            this.pendingLevel = id;
+            document.getElementById('confirm-modal').style.display = 'flex';
+        }
+    },
+    confirmReplay: function () {
+        if (this.pendingLevel) {
+            closeOverlay('confirm-modal');
+            this.startLevel(this.pendingLevel);
+            this.pendingLevel = null;
+        }
+    },
+    startLevel: function (id) {
+        this.curr = id;
+        document.getElementById('map-modal').style.display = 'none';
+        document.getElementById('win-modal').style.display = 'none';
+
+        // 设置关卡标题
+        if (this.isBlindBoxMode) {
+            document.getElementById('level-title').innerText = `🎁 盲盒第${id}关`;
+        } else {
+            document.getElementById('level-title').innerText = `第${id}关`;
+        }
+
+        document.body.classList.add('game-active');
+        document.getElementById('game-container').scrollTop = 0;
+        HomeDashboard.hide();
+        this.render(this.config[id - 1].words);
+        this.startT = Date.now();
+        clearInterval(this.timer);
+
+        const tEl = document.getElementById('timer-value');
+
+        // 盲盒模式：倒计时
+        if (this.isBlindBoxMode && this.blindBoxTimeLimit) {
+            tEl.innerText = this.blindBoxTimeLimit.toFixed(1);
+
+            this.timer = setInterval(() => {
+                if (this.active && !this.paused) {
+                    const elapsed = (Date.now() - this.startT) / 1000;
+                    const remaining = this.blindBoxTimeLimit - elapsed;
+
+                    if (remaining <= 0) {
+                        this.failBlindBoxChallenge();
+                    } else {
+                        tEl.innerText = remaining.toFixed(1);
+
+                        // 时间紧张时的视觉提示
+                        if (remaining <= 5) {
+                            tEl.style.color = '#FF4757';
+                            tEl.style.animation = 'pulse 0.5s infinite';
+                        } else if (remaining <= 10) {
+                            tEl.style.color = '#FFA726';
+                        }
+                    }
+                }
+            }, 100);
+        } else {
+            // 普通模式：正计时
+            tEl.innerText = "0.0";
+            tEl.style.color = '#F59E0B';
+            tEl.style.animation = '';
+
+            this.timer = setInterval(() => {
+                if (this.active && !this.paused) {
+                    tEl.innerText = ((Date.now() - this.startT) / 1000).toFixed(1);
+                }
+            }, 100);
+        }
+    },
+    replayLevel: function () { this.startLevel(this.curr); },
+    nextLevel: function () { this.startLevel(this.curr + 1); },
+    render: function (words) {
+        this.active = true; this.sel = null; this.matched = 0; this.pairs = words.length;
+        let items = [];
+        words.forEach(w => { items.push({ t: 'c', txt: w.char, id: w.char }); items.push({ t: 'p', txt: w.pinyin, id: w.char }); });
+        items.sort(() => 0.5 - Math.random());
+        const b = document.getElementById('game-board');
+        b.innerHTML = ''; b.className = this.pairs <= 4 ? 'grid-4' : 'grid-6';
+        items.forEach(i => {
+            const el = document.createElement('div');
+            el.className = 'bubble'; el.innerText = i.txt; el.dataset.id = i.id;
+            el.dataset.type = i.t === 'p' ? 'pinyin' : 'char';
+
+            // 根据拼音长度动态调整字号，防止溢出
+            if (i.t === 'p') {
+                if (i.txt.length >= 6) {
+                    el.classList.add('extra-long-txt');
+                } else if (i.txt.length >= 5) {
+                    el.classList.add('long-txt');
+                }
+            }
+
+            // 使用 pointerdown 提升移动端响应速度
+            el.onpointerdown = (e) => {
+                e.preventDefault();
+                this.handle(el);
+            };
+            el.style.animationDelay = Math.random() + 's';
+            b.appendChild(el);
+        });
+    },
+    handle: function (el) {
+        if (!this.active || el.classList.contains('matched')) return;
+        el.classList.remove('bubble-pop-active');
+        void el.offsetWidth;
+        el.classList.add('bubble-pop-active');
+        setTimeout(() => el.classList.remove('bubble-pop-active'), 300);
+
+        if (el === this.sel) {
+            el.classList.remove('selected');
+            this.sel = null;
+            return;
+        }
+
+        AudioSys.playClick();
+        el.classList.add('selected');
+
+        if (!this.sel) this.sel = el;
+        else {
+            const f = this.sel;
+            const b = document.getElementById('game-board');
+            b.style.pointerEvents = 'none';
+
+            // 核心匹配逻辑：支持同音字/多音字
+            const isCorrect = (function () {
+                // 必须是一个汉字一个拼音
+                if (f.dataset.type === el.dataset.type) return false;
+                // 如果是干扰项，直接返回false
+                if (f.dataset.distractor === 'true' || el.dataset.distractor === 'true') return false;
+                const char = f.dataset.type === 'char' ? f.innerText : el.innerText;
+                const pinyin = f.dataset.type === 'pinyin' ? f.innerText : el.innerText;
+                // 在词库中查找任意匹配项
+                return fullVocabulary.some(v => v.char === char && v.pinyin === pinyin);
+            })();
+
+            if (isCorrect) {
+                AudioSys.playMatch();
+                const r = el.getBoundingClientRect();
+                Particles.spawn(r.left + r.width / 2, r.top + r.height / 2);
+                const charId = f.dataset.type === 'char' ? f.dataset.id : el.dataset.id;
+                if (!SaveSystem.data.stats.totalWords.includes(charId)) SaveSystem.data.stats.totalWords.push(charId);
+
+                setTimeout(() => {
+                    f.classList.add('matched'); el.classList.add('matched');
+                    f.classList.remove('selected'); el.classList.remove('selected');
+                    this.matched++;
+
+                    // 如果完成了所有配对，让所有字和拼音（含干扰项）一起消失
+                    if (this.matched >= this.pairs) {
+                        b.querySelectorAll('.bubble').forEach(bubble => {
+                            bubble.classList.add('matched');
+                            bubble.classList.remove('selected');
+                        });
+                    }
+
+                    // 在匹配到倒数第二对后，添加干扰项
+                    if (this.matched === this.pairs - 1 && this.pairs > 1) {
+                        const remainingBubbles = Array.from(b.querySelectorAll('.bubble:not(.matched)'));
+                        const charBubble = remainingBubbles.find(el => el.dataset.type === 'char');
+                        if (charBubble) {
+                            const targetChar = charBubble.innerText;
+                            const targetWord = fullVocabulary.find(v => v.char === targetChar);
+                            if (targetWord) {
+                                const distractors = fullVocabulary.filter(v =>
+                                    v.char !== targetChar &&
+                                    v.pinyin !== targetWord.pinyin
+                                );
+                                if (distractors.length >= 3) {
+                                    // 随机选择3个不同的干扰项
+                                    const shuffled = distractors.sort(() => Math.random() - 0.5);
+                                    const selectedDistractors = shuffled.slice(0, 3);
+
+                                    const distractorElements = selectedDistractors.map(distractor => {
+                                        const distractorEl = document.createElement('div');
+                                        distractorEl.className = 'bubble';
+                                        distractorEl.innerText = distractor.pinyin;
+                                        distractorEl.dataset.id = 'distractor';
+                                        distractorEl.dataset.type = 'pinyin';
+                                        distractorEl.dataset.distractor = 'true';
+                                        if (distractor.pinyin.length >= 6) {
+                                            distractorEl.classList.add('extra-long-txt');
+                                        } else if (distractor.pinyin.length >= 5) {
+                                            distractorEl.classList.add('long-txt');
+                                        }
+                                        distractorEl.onpointerdown = (e) => {
+                                            e.preventDefault();
+                                            this.handle(distractorEl);
+                                        };
+                                        return distractorEl;
+                                    });
+
+                                    // 先淡出现有气泡
+                                    remainingBubbles.forEach(bubble => {
+                                        bubble.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+                                        bubble.style.opacity = '0';
+                                        bubble.style.transform = 'scale(0.8)';
+                                    });
+
+                                    setTimeout(() => {
+                                        // 收集所有气泡：1个汉字 + 1个正确拼音 + 3个干扰拼音
+                                        const pinyinBubbles = remainingBubbles.filter(el => el.dataset.type === 'pinyin');
+                                        const allPinyins = [...pinyinBubbles, ...distractorElements];
+                                        allPinyins.sort(() => Math.random() - 0.5);
+
+                                        // 移除原有的未匹配气泡
+                                        remainingBubbles.forEach(bubble => bubble.remove());
+
+                                        // 切换到grid-final布局（3x3）
+                                        b.className = 'grid-final';
+
+                                        // 先添加汉字（会自动居中）
+                                        charBubble.style.opacity = '0';
+                                        charBubble.style.transform = 'scale(0.8)';
+                                        charBubble.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                                        b.appendChild(charBubble);
+                                        setTimeout(() => {
+                                            charBubble.style.opacity = '1';
+                                            charBubble.style.transform = 'scale(1)';
+                                        }, 50);
+
+                                        // 添加4个拼音（环绕汉字）
+                                        allPinyins.forEach((bubble, index) => {
+                                            bubble.style.opacity = '0';
+                                            bubble.style.transform = 'scale(0.8)';
+                                            bubble.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                                            bubble.style.animationDelay = (index * 0.1) + 's';
+                                            b.appendChild(bubble);
+
+                                            setTimeout(() => {
+                                                bubble.style.opacity = '1';
+                                                bubble.style.transform = 'scale(1)';
+                                            }, 50 + index * 50);
+                                        });
+                                    }, 200);
+                                }
+                            }
+                        }
+                    }
+
+                    b.style.pointerEvents = 'auto';
+                    if (this.matched >= this.pairs) this.finish();
+                }, 250);
+            } else {
+                AudioSys.playError();
+                SaveSystem.addMistake(f.dataset.id);
+                setTimeout(() => {
+                    f.classList.add('shake');
+                    el.classList.add('shake');
+                    f.classList.remove('selected');
+                }, 100); // 缩短等待时间
+                setTimeout(() => {
+                    f.classList.remove('shake');
+                    el.classList.remove('selected', 'shake');
+                    document.getElementById('game-board').style.pointerEvents = 'auto';
+                }, 500); // 缩短锁定时间，从 700ms 降至 500ms
+            }
+            this.sel = null;
+        }
+    },
+    finish: function () {
+        this.active = false; clearInterval(this.timer);
+        const timerVal = parseFloat(document.getElementById('timer-value').innerText);
+        let time = timerVal; // Default: Normal mode (counts up)
+
+        // 重置计时器样式
+        const tEl = document.getElementById('timer-value');
+        tEl.style.color = '#F59E0B';
+        tEl.style.animation = '';
+
+        AudioSys.playWin();
+
+        // 盲盒挑战成功逻辑
+        if (this.isBlindBoxMode) {
+            // 计算实际用时（倒计时模式）
+            time = parseFloat((this.blindBoxTimeLimit - timerVal).toFixed(1));
+
+            SaveSystem.data.blindBox.success++;
+
+            // 根据剩余时间给予不同奖励
+            let bonus = 0;
+            let message = '';
+            let emoji = '';
+            if (timerVal > this.blindBoxTimeLimit * 0.5) {
+                bonus = 50;
+                emoji = '🏆';
+                message = `完美完成！剩余 ${timerVal.toFixed(1)} 秒！`;
+            } else if (timerVal > this.blindBoxTimeLimit * 0.2) {
+                bonus = 30;
+                emoji = '🎉';
+                message = `挑战成功！剩余 ${timerVal.toFixed(1)} 秒！`;
+            } else {
+                bonus = 20;
+                emoji = '✨';
+                message = `惊险完成！剩余 ${timerVal.toFixed(1)} 秒！`;
+            }
+
+            // 显示成功弹窗
+            this.showBlindBoxSuccess(emoji, message, bonus);
+
+            PetSystem.addXP(bonus, false);
+
+            // 检查是否全部成功
+            if (SaveSystem.data.blindBox.success >= 15) {
+                setTimeout(() => {
+                    document.getElementById('reward-modal').style.display = 'flex';
+                    PetSystem.addXP(200);
+                    AudioSys.playWin();
+                }, 2000);
+            }
+
+            // 重置盲盒模式
+            this.isBlindBoxMode = false;
+            this.blindBoxTimeLimit = null;
+            document.body.classList.remove('blind-box-mode', 'bb-theme-bunny', 'bb-theme-cat', 'bb-theme-frog', 'bb-theme-penguin', 'bb-theme-fox', 'bb-theme-bear', 'bb-theme-butterfly');
+
+            return; // 重要：直接返回，不执行后面的普通关卡逻辑
+        }
+
+        // 普通关卡完成逻辑 (Normal Level Logic)
+        if (!this.isBossMode && !this.isBlindBoxMode) {
+            SaveSystem.data.levelStars[this.curr] = 3;
+
+            // Trigger Boss Battle every 5 levels (Boss Logic)
+            // Configurable Trigger: Level % 5 === 0. Only on first clear (curr === maxLevel)
+            if (this.curr % 5 === 0 && this.curr === SaveSystem.data.maxLevel) {
+                // Delay slightly to let the "match" sound finish or just for effect
+                setTimeout(() => {
+                    document.getElementById('boss-warning-modal').style.display = 'flex';
+                    // Play a specific sound if available, or just reuse error sound as 'alarm'
+                    AudioSys.playError();
+                }, 500);
+                return; // Stop normal win flow
+            }
+
+            if (this.curr === SaveSystem.data.maxLevel) SaveSystem.data.maxLevel++;
+        } else if (this.isBossMode) {
+            // Boss Level Complete
+            // Recalculate time for Boss (Limit - Remaining)
+            time = parseFloat((this.bossTimeLimit - timerVal).toFixed(1));
+
+            AudioSys.stopTension(); // Stop tension audio
+            document.body.classList.remove('boss-mode');
+            this.isBossMode = false; // Reset mode
+            // Advance level after boss defeat
+            SaveSystem.data.maxLevel++;
+
+            // Boss Victory Stats & Badge
+            if (!SaveSystem.data.stats.bossDefeats) SaveSystem.data.stats.bossDefeats = 0;
+            SaveSystem.data.stats.bossDefeats++;
+            BadgeSystem.check('boss_killer');
+
+            Toast.show(`🎉 恭喜打败大魔王！用时 ${time} 秒`);
+        }
+
+        // 只有非盲盒模式才记录成绩和升级
+        if (!this.isBlindBoxMode) {
+            SaveSystem.data.stats.totalTime += time;
+            const isRec = SaveSystem.checkNewRecord(this.curr, time);
+            const xp = isRec ? 50 : 20;
+            PetSystem.addXP(xp);
+            BadgeSystem.check('first_win'); BadgeSystem.check('speedster', time / this.pairs); BadgeSystem.check('scholar');
+            SaveSystem.save();
+            HomeDashboard.update();
+
+            // 只有非盲盒模式才显示普通胜利弹窗
+            if (!this.isBlindBoxMode) {
+                setTimeout(() => {
+                    document.getElementById('win-modal').style.display = 'flex';
+                    document.getElementById('result-time').innerText = time + 's';
+                    document.getElementById('result-best').innerText = SaveSystem.data.levelRecords[this.curr] + 's';
+                    document.getElementById('record-alert').style.display = isRec ? 'block' : 'none';
+                    document.getElementById('encouragement-text').innerText = getRandomEncouragement();
+                    for (let i = 0; i < 5; i++) setTimeout(() => Particles.spawn(window.innerWidth / 2, window.innerHeight / 2), i * 200);
+                }, 500);
+            }
+        } else {
+            // 盲盒模式完成后不显示普通胜利弹窗，直接返回首页
+            setTimeout(() => {
+                HomeDashboard.show();
+                for (let i = 0; i < 3; i++) setTimeout(() => Particles.spawn(window.innerWidth / 2, window.innerHeight / 2), i * 200);
+            }, 1000); // 缩短延迟时间
+        }
+    }
+};
+
+const Toast = {
+    t: null,
+    show: function (m) {
+        const e = document.getElementById('toast');
+        if (!e) return;
+        e.innerText = m;
+        e.classList.add('show');
+        if (this.t) clearTimeout(this.t);
+        this.t = setTimeout(() => {
+            e.classList.remove('show');
+            this.t = null;
+        }, 3000);
+    }
+};
+const Particles = {
+    canvas: document.getElementById('confetti-canvas'),
+    ctx: document.getElementById('confetti-canvas').getContext('2d'),
+    items: [],
+    resize: function () { this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight },
+    spawn: function (x, y) {
+        // 移动端减少粒子数量
+        const count = window.innerWidth < 500 ? 15 : 30;
+        for (let i = 0; i < count; i++)this.items.push({ x, y, vx: (Math.random() - .5) * 15, vy: (Math.random() - .5) * 15, life: 1, color: `hsl(${Math.random() * 360},80%,60%)` })
+    },
+    loop: function () {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        for (let i = 0; i < this.items.length; i++) {
+            let p = this.items[i];
+            p.x += p.vx; p.y += p.vy; p.vy += 0.5; p.life -= 0.02;
+            this.ctx.globalAlpha = p.life;
+            this.ctx.fillStyle = p.color;
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, 5, 0, 6.28);
+            this.ctx.fill();
+            if (p.life <= 0) this.items.splice(i--, 1)
+        }
+        requestAnimationFrame(() => this.loop())
+    }
+};
+Particles.resize(); window.onresize = () => Particles.resize(); Particles.loop();
+
+// 关键修复：显式挂载核心对象到 window，确保 HTML onclick 能访问
+// 关键修复：显式挂载核心对象到 window，确保 HTML onclick 能访问
+window.Game = Game;
+window.AudioSys = AudioSys;
+window.MistakeBook = MistakeBook;
+window.SaveSystem = SaveSystem;
+window.HomeDashboard = HomeDashboard;
+window.NicknameSystem = NicknameSystem;
+window.Dashboard = Dashboard;
+window.Toast = Toast;
+window.closeOverlay = closeOverlay;
+window.PetSystem = PetSystem;
+window.BadgeSystem = BadgeSystem;
+window.getRandomEncouragement = getRandomEncouragement;
+
+// 初始化
+SaveSystem.load();
+NicknameSystem.init();
+Game.init();
+HomeDashboard.show();
+document.addEventListener('gesturestart', (e) => e.preventDefault());
