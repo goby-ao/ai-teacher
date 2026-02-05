@@ -12,7 +12,10 @@
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Lexend:wght@700;800&family=Nunito:wght@700;800;900&display=swap">
     <!-- 外部样式表 -->
-    <link rel="stylesheet" href="css/styles.css">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <link rel="stylesheet" href="css/styles.css?v=20260205">
 </head>
 
 <body>
@@ -27,7 +30,14 @@
         <div class="hud-content">
             <!-- 第一行：标题 -->
             <div class="hud-row-title">
-                <div class="page-title" id="page-title">识字大冒险</div>
+                <div class="hud-title-wrap">
+                    <div class="page-title" id="page-title">识字大冒险</div>
+                    <div class="btn-pill grade-pill" onpointerdown="GradeSelector.open()">
+                        <span>🎒</span>
+                        <span class="grade-btn-text">年级</span>
+                        <span id="current-grade-label" class="grade-btn-value">2下</span>
+                    </div>
+                </div>
             </div>
 
             <!-- 第二行：控制按钮 -->
@@ -74,6 +84,15 @@
                 <div class="speech-bubble" id="pet-speech">你好呀！</div>
                 <div class="pet-mascot" id="pet-home-avatar">🐣</div>
                 <div class="pet-shadow" id="pet-home-shadow"></div>
+            </div>
+
+            <div class="daily-review-card">
+                <div class="daily-review-header">
+                    <div class="daily-review-title">今日必练</div>
+                    <div class="daily-review-count"><span id="daily-review-done">0</span>/<span
+                            id="daily-review-total">0</span></div>
+                </div>
+                <div class="daily-review-list" id="daily-review-list"></div>
             </div>
 
             <div class="big-map-btn" onpointerdown="Game.showLevelMap()">
@@ -187,11 +206,32 @@
                         <div style="text-align: right;">
                             <div
                                 style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; color: #fff; margin-bottom: 4px;">
-                                <span id="bb-remain-count">15</span>/15
+                                <span id="bb-remain-count">15</span>/<span id="bb-total-count">15</span>
                             </div>
                             <div
                                 style="background: rgba(255,255,255,0.9); color: #667eea; padding: 4px 12px; border-radius: 15px; font-size: 0.8rem; font-weight: 800;">
                                 开启
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 随机复盘挑战卡片 -->
+            <div id="replay-random-card" style="margin-bottom: 15px;">
+                <div style="background: linear-gradient(135deg, #FF9A9E 0%, #FAD0C4 100%); border-radius: 16px; padding: 12px 16px; cursor: pointer; transition: all 0.3s ease;"
+                    onclick="Game.openReplayRoulette()">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="font-size: 2rem;">🎯</div>
+                        <div style="flex: 1;">
+                            <div style="color: #fff; font-size: 1.05rem; font-weight: 800; margin-bottom: 2px;">随机复盘
+                            </div>
+                            <div style="color: rgba(255,255,255,0.85); font-size: 0.8rem;">已通关关卡·冲破纪录</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div
+                                style="background: rgba(255,255,255,0.9); color: #FF6B9D; padding: 4px 12px; border-radius: 15px; font-size: 0.8rem; font-weight: 800;">
+                                开始
                             </div>
                         </div>
                     </div>
@@ -243,6 +283,11 @@
                         <div class="read-btn" onclick="AudioSys.speak(document.getElementById('card-char').innerText)">
                             🔊</div>
                     </div>
+                    <div class="detail-audio">
+                        <button class="detail-audio-btn record" id="detail-record-btn">🎤 录音</button>
+                        <button class="detail-audio-btn play disabled" id="detail-play-btn">🔊 播放</button>
+                        <span class="detail-audio-timer" id="detail-record-timer">3.0s</span>
+                    </div>
                 </div>
             </div>
             <div style="background:#F9FAFB; padding:20px; border-radius:20px; margin-bottom:20px;">
@@ -260,6 +305,24 @@
                 <button class="btn-secondary" onclick="closeOverlay('detail-modal')">关闭</button>
                 <button id="mistake-action-btn" class="btn-main" onclick="MistakeBook.resolveCurrent()">我记住了</button>
             </div>
+        </div>
+    </div>
+
+    <!-- 弹窗：复习小关卡 -->
+    <div id="review-quiz-modal" class="modal-overlay">
+        <div class="card review-quiz-card">
+            <div class="close-btn" onclick="MiniQuiz.close(true)">✕</div>
+            <h2 style="text-align:center; color:#333; margin-bottom:6px;">复习挑战</h2>
+            <div class="review-quiz-sub">8 秒内选出正确拼音</div>
+            <div class="review-timer">⏱️ <span id="review-timer">8.0</span>s</div>
+            <div class="review-arena">
+                <div id="review-char" class="review-char">字</div>
+                <button class="review-option pos-top" id="review-opt-top">?</button>
+                <button class="review-option pos-right" id="review-opt-right">?</button>
+                <button class="review-option pos-bottom" id="review-opt-bottom">?</button>
+                <button class="review-option pos-left" id="review-opt-left">?</button>
+            </div>
+            <div class="review-tip">点一下拼音即可答题</div>
         </div>
     </div>
 
@@ -299,6 +362,17 @@
         </div>
     </div>
 
+    <!-- 弹窗：年级选择 -->
+    <div id="grade-modal" class="modal-overlay">
+        <div class="card" style="max-width:420px;">
+            <div class="close-btn" onclick="GradeSelector.close()">✕</div>
+            <h2 style="text-align:center; color:#333; margin-bottom:18px;">选择年级</h2>
+            <div id="grade-list" class="grade-list"></div>
+            <div class="grade-tip">切换年级后，将加载对应的学习进度。</div>
+            <div class="grade-current">当前年级：<span id="grade-current-name">二年级（下）</span></div>
+        </div>
+    </div>
+
     <!-- 弹窗：盲盒大奖 -->
     <div id="reward-modal" class="modal-overlay">
         <div class="card"
@@ -311,6 +385,17 @@
             <div style="font-size:2rem; margin-bottom:20px;">💰 ✨ 💎</div>
             <button class="btn-main" onclick="closeOverlay('reward-modal')"
                 style="width:100%; background:#f59e0b;">收下奖励</button>
+        </div>
+    </div>
+
+    <!-- 弹窗：今日必练奖励 -->
+    <div id="daily-reward-modal" class="modal-overlay">
+        <div class="card daily-reward-card">
+            <div style="font-size:4rem; margin-bottom:10px;">🎉</div>
+            <h2 style="color:#333; margin-bottom:6px;">今日必练完成！</h2>
+            <div style="color:#666; margin-bottom:16px;">太棒啦，奖励你一颗星星！</div>
+            <div class="daily-reward-stars">⭐ 🌟 ⭐</div>
+            <button class="btn-main" onclick="closeOverlay('daily-reward-modal')">收下奖励</button>
         </div>
     </div>
 
@@ -379,7 +464,7 @@
     </div>
 
     <!-- ES Modules 入口 -->
-    <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/main.js?v=20260205"></script>
 </body>
 
 </html>
