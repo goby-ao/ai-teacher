@@ -2,19 +2,22 @@
 // 主入口模块 - 识字大冒险
 // =============================================
 // 数据模块:
+// - js/data/vocabulary_grade1_2.js  (一年级下词汇)
 // - js/data/vocabulary_grade2_2.js  (二年级下词汇)
 // - js/data/vocabulary_grade3_1.js  (三年级上词汇)
 // - js/data/grade-config.js         (年级配置)
 // - js/data/constants.js            (常量: BADGES, ENCOURAGEMENTS 等)
 // =============================================
 
-import { fullVocabulary as vocabulary_grade2_2 } from './data/vocabulary_grade2_2.js?v=20260205';
-import { fullVocabulary as vocabulary_grade3_1 } from './data/vocabulary_grade3_1.js?v=20260205';
-import { GRADE_CONFIG, DEFAULT_GRADE, getGradeList } from './data/grade-config.js';
+import { fullVocabulary as vocabulary_grade1_2 } from './data/vocabulary_grade1_2.js?v=20260206';
+import { fullVocabulary as vocabulary_grade2_2 } from './data/vocabulary_grade2_2.js?v=20260206';
+import { fullVocabulary as vocabulary_grade3_1 } from './data/vocabulary_grade3_1.js?v=20260206';
+import { GRADE_CONFIG, DEFAULT_GRADE, getGradeList } from './data/grade-config.js?v=20260206';
 import { BADGES, ENCOURAGEMENTS, FUN_NICKNAMES, BLIND_BOX_THEMES } from './data/constants.js';
 
 // 年级词汇映射表
 const VOCABULARY_DATA = {
+    'grade1_2': vocabulary_grade1_2,
     'grade2_2': vocabulary_grade2_2,
     'grade3_1': vocabulary_grade3_1
 };
