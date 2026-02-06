@@ -2,20 +2,25 @@
 // Grade Configuration Module
 
 export const GRADE_CONFIG = {
+    'grade1_1': {
+        name: '一年级（上）',
+        shortName: '1上',
+        order: 0
+    },
     'grade1_2': {
         name: '一年级（下）',
         shortName: '1下',
-        order: 0
+        order: 1
     },
     'grade2_2': {
         name: '二年级（下）',
         shortName: '2下',
-        order: 1
+        order: 2
     },
     'grade3_1': {
         name: '三年级（上）',
         shortName: '3上',
-        order: 2
+        order: 3
     }
 };
 
