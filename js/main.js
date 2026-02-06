@@ -112,16 +112,17 @@ const AudioSys = {
         if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
         if (this.ctx.state === 'suspended') this.ctx.resume();
     },
-    playTone: function (freq, attack, decay, vol = 0.2) {
+    playTone: function (freq, attack, decay, vol = 0.2, type = 'sine', outputNode = null) {
         if (!this.ctx) this.init();
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
-        osc.type = 'sine'; osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        osc.type = type; osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
         const now = this.ctx.currentTime;
         gain.gain.setValueAtTime(0, now);
         gain.gain.linearRampToValueAtTime(vol, now + attack);
         gain.gain.exponentialRampToValueAtTime(0.001, now + attack + decay);
-        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.connect(gain);
+        gain.connect(outputNode || this.ctx.destination);
         osc.start(); osc.stop(now + attack + decay);
     },
     playClick: function () { this.playTone(800, 0.01, 0.1, 0.1); },
@@ -129,6 +130,139 @@ const AudioSys = {
         setTimeout(() => this.playTone(523.25, 0.02, 0.3, 0.15), 0);
         setTimeout(() => this.playTone(659.25, 0.02, 0.3, 0.15), 80);
         setTimeout(() => this.playTone(783.99, 0.02, 0.4, 0.15), 160);
+    },
+    playPianoHit: function () {
+        const notes = [261.63, 293.66, 329.63, 392.0, 440.0, 523.25, 587.33, 659.25, 783.99, 880.0];
+        const base = notes[Math.floor(Math.random() * notes.length)];
+        this.playTone(base, 0.01, 0.28, 0.18, 'triangle');
+        this.playTone(base * 2, 0.01, 0.2, 0.06, 'sine');
+    },
+    playCoin: function () {
+        if (!this.ctx) this.init();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.exponentialRampToValueAtTime(1760, now + 0.08);
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.linearRampToValueAtTime(0.12, now + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(now + 0.2);
+
+        // 轻微“叮”音叠加
+        this.playTone(1320, 0.005, 0.12, 0.04, 'sine');
+    },
+    startBgm: function () {
+        if (this.bgm && this.bgm.playing) return;
+        this.init();
+        // iOS/移动端兼容：用一次极轻的“解锁音”确保 AudioContext 可用
+        try {
+            const osc = this.ctx.createOscillator();
+            const g = this.ctx.createGain();
+            g.gain.setValueAtTime(0.0001, this.ctx.currentTime);
+            osc.connect(g);
+            g.connect(this.ctx.destination);
+            osc.start();
+            osc.stop(this.ctx.currentTime + 0.02);
+        } catch (e) { }
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.0001, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.18, this.ctx.currentTime + 0.4);
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(3000, this.ctx.currentTime);
+        filter.Q.setValueAtTime(0.7, this.ctx.currentTime);
+
+        gain.connect(filter);
+        filter.connect(this.ctx.destination);
+
+        const bpm = 156;
+        const step = 60 / bpm / 2; // eighth note
+        const scale = [60, 62, 63, 65, 67, 69, 70, 72]; // C minor (解谜感)
+        const bassLine = [36, 36, 39, 39, 41, 41, 38, 38]; // C-Eb-F-D
+        const melody = [
+            // A 段（解谜感、轻微神秘）
+            72, 70, 67, 63, 67, 70, 72, null,
+            70, 67, 65, 63, 65, 67, 70, null,
+            72, 70, 67, 63, 67, 65, 63, null,
+            62, 63, 65, 67, 65, 63, 62, null,
+            // A 段变奏（更轻快）
+            69, 70, 72, 70, 69, 67, 65, null,
+            67, 69, 70, 72, 70, 69, 67, null,
+            65, 67, 69, 70, 69, 67, 65, null,
+            63, 65, 67, 69, 67, 65, 63, null,
+            // B 段（解谜推进感）
+            60, 63, 67, 70, 67, 63, 60, null,
+            62, 65, 69, 70, 69, 65, 62, null,
+            63, 65, 67, 69, 70, 69, 67, null,
+            62, 63, 65, 67, 65, 63, 62, null
+        ];
+
+        const midiToFreq = (m) => 440 * Math.pow(2, (m - 69) / 12);
+
+        const state = {
+            playing: true,
+            gain,
+            filter,
+            stepIndex: 0,
+            timer: null
+        };
+        this.bgm = state;
+
+        const tick = () => {
+            if (!state.playing) return;
+            const idx = state.stepIndex % melody.length;
+            const bassIdx = state.stepIndex % bassLine.length;
+            const note = melody[idx];
+            const bass = bassLine[bassIdx];
+
+            if (note) {
+                this.playTone(midiToFreq(note), 0.006, 0.18, 0.06, 'square', gain);
+                this.playTone(midiToFreq(note + 12), 0.004, 0.12, 0.02, 'square', gain);
+            }
+            if (state.stepIndex % 2 === 0) {
+                this.playTone(midiToFreq(bass), 0.01, 0.3, 0.05, 'triangle', gain);
+            }
+
+            // 轻微装饰音
+            if (state.stepIndex % 8 === 4) {
+                const sparkle = scale[Math.floor(Math.random() * scale.length)] + 12;
+                this.playTone(midiToFreq(sparkle), 0.003, 0.1, 0.02, 'square', gain);
+            }
+
+            // 简单和弦点缀
+            if (state.stepIndex % 8 === 0) {
+                const chordRoot = [60, 67, 65, 62][Math.floor((state.stepIndex / 8) % 4)];
+                [chordRoot, chordRoot + 4, chordRoot + 7].forEach((m) => {
+                    this.playTone(midiToFreq(m - 12), 0.03, 0.5, 0.02, 'square', gain);
+                });
+            }
+
+            state.stepIndex++;
+            state.timer = setTimeout(tick, step * 1000);
+        };
+
+        tick();
+    },
+    stopBgm: function () {
+        if (!this.bgm || !this.bgm.playing) return;
+        const { gain, filter, timer } = this.bgm;
+        if (timer) clearTimeout(timer);
+        this.bgm.playing = false;
+        try {
+            gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.4);
+            setTimeout(() => {
+                try { gain.disconnect(); } catch (e) { }
+                try { if (filter) filter.disconnect(); } catch (e) { }
+            }, 500);
+        } catch (e) { }
+        this.bgm = null;
     },
     playError: function () { this.playTone(150, 0.01, 0.2, 0.2); },
     playWin: function () {
@@ -300,7 +434,8 @@ const SaveSystem = {
         maxLevel: 1, levelStars: {}, mistakes: {}, levelRecords: {},
         historyMistakes: {},
         stats: { totalTime: 0, totalWords: [] },
-        blindBox: { used: 0, success: 0, lastReset: '', bonus: 0 }
+        blindBox: { used: 0, success: 0, lastReset: '', bonus: 0 },
+        pinyinRain: { used: 0, lastReset: '' }
     },
     data: {
         currentGrade: DEFAULT_GRADE, // 当前选中年级
@@ -336,6 +471,9 @@ const SaveSystem = {
         if (typeof gd.blindBox.success !== 'number') gd.blindBox.success = 0;
         if (typeof gd.blindBox.lastReset !== 'string') gd.blindBox.lastReset = '';
         if (typeof gd.blindBox.bonus !== 'number') gd.blindBox.bonus = 0;
+        if (!gd.pinyinRain) gd.pinyinRain = { used: 0, lastReset: '' };
+        if (typeof gd.pinyinRain.used !== 'number') gd.pinyinRain.used = 0;
+        if (typeof gd.pinyinRain.lastReset !== 'string') gd.pinyinRain.lastReset = '';
         if (!gd.review || typeof gd.review !== 'object') {
             gd.review = { lastDate: '', todayList: [], todayDone: [], streaks: {}, rewarded: false };
         }
@@ -458,6 +596,10 @@ const SaveSystem = {
                     this.data.gradeData[g].blindBox.lastReset = today;
                     this.data.gradeData[g].blindBox.bonus = 0;
                 }
+                if (this.data.gradeData[g].pinyinRain) {
+                    this.data.gradeData[g].pinyinRain.used = 0;
+                    this.data.gradeData[g].pinyinRain.lastReset = today;
+                }
             });
             setTimeout(() => Toast.show("📅 每日打卡！能量 +20"), 1000);
             PetSystem.addXP(20, false);
@@ -512,6 +654,23 @@ const SaveSystem = {
             bbRemain.innerText = remain;
             const bbTotal = document.getElementById('bb-total-count');
             if (bbTotal) bbTotal.innerText = total;
+        }
+        // 更新拼音雨剩余次数
+        const prRemain = document.getElementById('pr-remain-count');
+        if (prRemain && gd.pinyinRain) {
+            const total = 15;
+            const remain = Math.max(0, total - gd.pinyinRain.used);
+            prRemain.innerText = remain;
+            const prTotal = document.getElementById('pr-total-count');
+            if (prTotal) prTotal.innerText = total;
+        }
+        // 拼音雨解锁状态（需到10关）
+        const prCard = document.getElementById('pinyin-rain-card');
+        if (prCard) {
+            const unlocked = (gd.maxLevel || 1) >= 10;
+            prCard.classList.toggle('locked', !unlocked);
+            const prAction = document.getElementById('pr-action-pill');
+            if (prAction) prAction.innerText = unlocked ? '开始' : '锁定';
         }
         // 更新年级显示
         const gradeLabel = document.getElementById('current-grade-label');
@@ -608,10 +767,13 @@ const GradeSelector = {
         Game.pairs = 0;
         Game.isBossMode = false;
         Game.isBlindBoxMode = false;
+        Game.isPinyinRainMode = false;
+        Game.pinyinRainState = null;
         Game.blindBoxTimeLimit = null;
         Game.openingBox = false;
         clearInterval(Game.timer);
         AudioSys.stopTension();
+        if (Game.exitPinyinRain) Game.exitPinyinRain();
         document.body.classList.remove(
             'game-active',
             'boss-mode',
@@ -964,16 +1126,16 @@ const RecordSystem = {
                 this.refreshButtons();
             };
             recorder.start();
-        this.recording = {
-            char,
-            recorder,
-            stream,
-            timer: setTimeout(() => this.stopRecording(), 3000),
-            countdown: 3.0
-        };
-        Toast.show('开始录音（3 秒）');
-        this.startCountdown();
-        this.refreshButtons();
+            this.recording = {
+                char,
+                recorder,
+                stream,
+                timer: setTimeout(() => this.stopRecording(), 3000),
+                countdown: 3.0
+            };
+            Toast.show('开始录音（3 秒）');
+            this.startCountdown();
+            this.refreshButtons();
         } catch (e) {
             Toast.show('录音失败，请允许麦克风权限');
             this.recording = null;
@@ -1449,7 +1611,7 @@ const Dashboard = {
 const Game = {
     curr: 1, active: false, sel: null, matched: 0, config: [], startT: 0, timer: null, pairs: 0,
     paused: false, pauseT: 0, isBossMode: false, isBlindBoxBoss: false, bossTimeLimit: 20,
-    blindBoxBoardTheme: null,
+    blindBoxBoardTheme: null, isPinyinRainMode: false, pinyinRainState: null,
     pause: function () {
         if (!this.active || this.paused) return;
         this.paused = true;
@@ -1464,6 +1626,10 @@ const Game = {
         if (this.openingBox) return;
 
         const gd = SaveSystem.gradeData;
+        if ((gd.maxLevel || 1) < 20) {
+            Toast.show('神秘盲盒解锁条件：通关到第20关');
+            return;
+        }
         // 检查次数限制
         const bonus = gd.blindBox?.bonus || 0;
         if (gd.blindBox.used >= 15 + bonus) {
@@ -1608,16 +1774,31 @@ const Game = {
                 '咬咬牙就过啦！'
             ],
             normal: [
-                '稳稳的节奏～',
-                '刚刚好，慢慢来！',
                 '今天手感不错哦～',
-                '淡定出击！'
+                '淡定出击！',
+                '时间管够，错一个也不慌',
+                '恭喜抽到“悠哉悠哉”档',
+                '时长很厚道，像老师加了作业减免',
+                '这局节奏像散步，不用跑',
+                '时间多到想请你吃根冰棍',
+                '这把是“慢动作特训”，帅就完事',
             ],
             easy: [
-                '轻松小菜一碟～',
-                '这波是放松模式！',
-                '慢慢来就稳赢～',
-                '今天好运加倍！'
+                '时间超长版：你可以先喝口水再开打',
+                '这把是“养老局”，稳稳地打',
+                '时长很厚道，像老师加了作业减免',
+                '慢慢来，连影子都追不上你',
+                '这是“佛系模式”，风平浪静',
+                '时间管够，错一个也不慌',
+                '恭喜抽到“悠哉悠哉”档',
+                '这局节奏像散步，不用跑',
+                '时间多到想请你吃根冰棍',
+                '这把是“慢动作特训”，帅就完事',
+                '抽到长时间：系统对你很好',
+                '今天运气在线，轻松拿下',
+                '有点像开了外挂：时间拉满',
+                '这把适合讲个笑话再开始',
+                '这是“舒适区”，请尽情发挥'
             ]
         };
 
@@ -1763,6 +1944,374 @@ const Game = {
         this.openingBox = false;
     },
 
+    openPinyinRain: function () {
+        const gd = SaveSystem.gradeData;
+        if ((gd.maxLevel || 1) < 10) {
+            Toast.show('拼音雨解锁条件：通关到第10关');
+            return;
+        }
+        if (!gd.pinyinRain) gd.pinyinRain = { used: 0, lastReset: '' };
+        if (gd.pinyinRain.used >= 15) {
+            Toast.show('今日次数用完啦，明天再来吧！');
+            return;
+        }
+        gd.pinyinRain.used++;
+        SaveSystem.save();
+        AudioSys.startBgm();
+        this.startPinyinRain();
+    },
+
+    startPinyinRain: function () {
+        this.isPinyinRainMode = true;
+        this.active = true;
+        this.sel = null;
+        this.matched = 0;
+        this.pairs = 0;
+        clearInterval(this.timer);
+
+        this.isBossMode = false;
+        this.isBlindBoxMode = false;
+        this.isBlindBoxBoss = false;
+        this.blindBoxTimeLimit = null;
+        this.clearBlindBoxBoardTheme();
+        document.body.classList.remove('boss-mode', 'blind-box-mode', 'bb-theme-bunny', 'bb-theme-cat', 'bb-theme-frog', 'bb-theme-penguin', 'bb-theme-fox', 'bb-theme-bear', 'bb-theme-butterfly');
+
+        const candidates = fullVocabulary.filter(v => v && v.char && v.pinyin);
+        const shuffled = candidates.sort(() => Math.random() - 0.5);
+        const targets = [];
+        const used = new Set();
+        for (let i = 0; i < shuffled.length && targets.length < 10; i++) {
+            const item = shuffled[i];
+            if (!used.has(item.char)) {
+                used.add(item.char);
+                targets.push({ char: item.char, pinyin: item.pinyin });
+            }
+        }
+
+        if (!targets.length) {
+            const gd = SaveSystem.gradeData;
+            if (gd.pinyinRain && gd.pinyinRain.used > 0) {
+                gd.pinyinRain.used--;
+                SaveSystem.save();
+            }
+            Toast.show('暂无可用拼音，稍后再试');
+            this.exitPinyinRain();
+            HomeDashboard.show();
+            return;
+        }
+
+        this.pinyinRainState = { index: 0, targets, roundActive: false, roundToken: 0, speedMul: 1 };
+
+        document.getElementById('map-modal').style.display = 'none';
+        document.getElementById('win-modal').style.display = 'none';
+        document.getElementById('pinyin-rain-win-modal').style.display = 'none';
+        document.getElementById('pinyin-rain-fail-modal').style.display = 'none';
+        document.getElementById('level-title').innerText = '拼音雨';
+        document.body.classList.add('game-active');
+        HomeDashboard.hide();
+        document.getElementById('game-container').scrollTop = 0;
+
+        const board = document.getElementById('game-board');
+        board.innerHTML = '';
+        board.className = 'rain-board';
+        board.style.display = 'block';
+
+        const banner = document.createElement('div');
+        banner.id = 'rain-pinyin-banner';
+        banner.className = 'rain-pinyin-banner';
+        board.appendChild(banner);
+
+        const layer = document.createElement('div');
+        layer.id = 'rain-fall-layer';
+        layer.className = 'rain-fall-layer';
+        board.appendChild(layer);
+
+        const tEl = document.getElementById('timer-value');
+        tEl.innerText = '--';
+        tEl.style.color = '#F59E0B';
+        tEl.style.animation = '';
+
+        AudioSys.playAdventure();
+        AudioSys.startBgm();
+        this.nextPinyinRainRound();
+    },
+
+    clearPinyinRainRound: function () {
+        const layer = document.getElementById('rain-fall-layer');
+        if (layer) layer.innerHTML = '';
+    },
+
+    applyPinyinRainSpeed: function (ratio = 1) {
+        if (ratio === 1) return;
+        document.querySelectorAll('.falling-char').forEach(el => {
+            const anims = el.getAnimations ? el.getAnimations() : [];
+            anims.forEach(a => {
+                a.playbackRate = (a.playbackRate || 1) * ratio;
+            });
+        });
+    },
+
+    nextPinyinRainRound: function () {
+        const state = this.pinyinRainState;
+        if (!state) return;
+        if (state.index >= state.targets.length) {
+            this.endPinyinRainSuccess();
+            return;
+        }
+
+        state.roundActive = true;
+        state.roundToken++;
+        const token = state.roundToken;
+        const target = state.targets[state.index];
+        const baseDuration = Math.max(4.8, 8.5 - state.index * 0.35);
+        const maxDuration = Math.max(5.6, 10.2 - state.index * 0.3);
+        const speedMul = state.speedMul || 1;
+        const board = document.getElementById('game-board');
+        if (board) {
+            const progressRatio = state.index / Math.max(1, state.targets.length);
+            board.classList.remove('tone-cool', 'tone-neutral', 'tone-warm');
+            if (progressRatio < 0.34) {
+                board.classList.add('tone-cool');
+            } else if (progressRatio < 0.67) {
+                board.classList.add('tone-neutral');
+            } else {
+                board.classList.add('tone-warm');
+            }
+        }
+
+        const banner = document.getElementById('rain-pinyin-banner');
+        if (banner) {
+            const totalRounds = state.targets.length;
+            const currentRound = Math.min(totalRounds, state.index + 1);
+            banner.innerHTML = `
+                <div class="rain-badge">
+                    <div class="rain-badge-label">进度</div>
+                    <div class="rain-badge-value"><span class="rain-progress-current">${currentRound}</span>/${totalRounds}</div>
+                </div>
+                <div class="rain-pinyin-core">
+                    <div class="rain-pinyin-text">${target.pinyin}</div>
+                </div>
+                <div class="rain-badge rain-speed-toggle">
+                    <div class="rain-badge-label">速度</div>
+                    <div class="rain-badge-value">x${speedMul.toFixed(1)}</div>
+                </div>
+            `;
+            const speedToggle = banner.querySelector('.rain-speed-toggle');
+            if (speedToggle) {
+                speedToggle.onpointerdown = (e) => {
+                    e.preventDefault();
+                    const prev = state.speedMul || 1;
+                    const next = prev === 1 ? 2 : (prev === 2 ? 3 : 1);
+                    state.speedMul = next;
+                    const value = speedToggle.querySelector('.rain-badge-value');
+                    if (value) value.innerText = `x${next.toFixed(1)}`;
+                    this.applyPinyinRainSpeed(next / prev);
+                    AudioSys.playClick();
+                };
+            }
+        }
+
+        this.clearPinyinRainRound();
+        const layer = document.getElementById('rain-fall-layer');
+        if (!layer) return;
+        layer.style.pointerEvents = 'auto';
+
+        const distractorCount = Math.min(6, 4 + Math.floor(state.index / 2));
+        const distractors = fullVocabulary
+            .filter(v => v && v.char && v.char !== target.char)
+            .sort(() => Math.random() - 0.5)
+            .slice(0, distractorCount)
+            .map(v => v.char);
+
+        const chars = [target.char, ...distractors].sort(() => Math.random() - 0.5);
+        const slots = chars.length;
+        const boardWidth = board ? board.clientWidth : 320;
+        const charSize = Math.min(72, boardWidth * 0.18);
+        const paddingX = 12;
+        const minX = paddingX;
+        const maxX = Math.max(minX, boardWidth - charSize - paddingX);
+        const minGap = Math.min(90, charSize * 1.1);
+
+        const positions = [];
+        for (let i = 0; i < slots; i++) {
+            let pos = minX + Math.random() * (maxX - minX);
+            let tries = 0;
+            while (tries < 30 && positions.some(p => Math.abs(p - pos) < minGap)) {
+                pos = minX + Math.random() * (maxX - minX);
+                tries++;
+            }
+            positions.push(pos);
+        }
+        if (positions.length < slots) {
+            positions.length = 0;
+            if (slots === 1) {
+                positions.push((minX + maxX) / 2);
+            } else {
+                const step = (maxX - minX) / Math.max(1, slots - 1);
+                for (let i = 0; i < slots; i++) positions.push(minX + step * i);
+            }
+        }
+
+        const sortedPos = positions.slice().sort((a, b) => a - b);
+        const swayByX = new Map();
+        sortedPos.forEach((x, i) => {
+            const leftEdge = i === 0 ? minX : sortedPos[i - 1];
+            const rightEdge = i === sortedPos.length - 1 ? maxX : sortedPos[i + 1];
+            const leftGap = x - leftEdge;
+            const rightGap = rightEdge - x;
+            const maxSway = Math.max(0, Math.min(24, (Math.min(leftGap, rightGap) - charSize) / 2));
+            swayByX.set(x, (Math.random() * 2 - 1) * maxSway);
+        });
+
+        const fallDistance = (board ? board.clientHeight : 520) + 120;
+
+        const items = chars.map((char, idx) => ({
+            char,
+            correct: char === target.char,
+            x: positions[idx],
+            sway: swayByX.get(positions[idx]) || 0,
+            duration: 0,
+            delay: 0
+        }));
+
+        const laneThreshold = charSize * 0.95;
+        const posEntries = items.map((item, idx) => ({ x: item.x, idx })).sort((a, b) => a.x - b.x);
+        const lanes = [];
+        posEntries.forEach(entry => {
+            const last = lanes[lanes.length - 1];
+            if (!last || (entry.x - last.lastX) > laneThreshold) {
+                lanes.push({ indices: [entry.idx], lastX: entry.x });
+            } else {
+                last.indices.push(entry.idx);
+                last.lastX = entry.x;
+            }
+        });
+
+        lanes.forEach(lane => {
+            const laneDuration = (baseDuration + Math.random() * (maxDuration - baseDuration)) / speedMul;
+            const minSep = charSize * 0.95;
+            const delayStep = Math.max(0.12, (minSep * laneDuration) / fallDistance);
+            const order = lane.indices.sort(() => Math.random() - 0.5);
+            order.forEach((idx, orderIndex) => {
+                items[idx].duration = laneDuration;
+                items[idx].delay = orderIndex * delayStep;
+            });
+        });
+
+        items.forEach((item) => {
+            const outer = document.createElement('div');
+            outer.className = 'falling-char';
+            outer.dataset.char = item.char;
+            outer.dataset.correct = item.correct ? 'true' : 'false';
+
+            const inner = document.createElement('div');
+            inner.className = 'falling-char-inner';
+            inner.innerText = item.char;
+            outer.appendChild(inner);
+
+            outer.style.left = `${item.x}px`;
+            outer.style.setProperty('--fall-distance', `${fallDistance}px`);
+            outer.style.setProperty('--sway', `${item.sway}px`);
+            outer.style.animationDuration = `${item.duration.toFixed(2)}s`;
+            outer.style.animationDelay = `${item.delay.toFixed(2)}s`;
+            outer.style.setProperty('animation-name', 'fall');
+
+            const sway = Math.abs(item.sway) > 4 ? 1 : 0;
+            if (sway) {
+                outer.style.animationName = 'fall, fall-sway';
+                outer.style.animationTimingFunction = 'linear, ease-in-out';
+                outer.style.animationIterationCount = '1, infinite';
+                outer.style.animationDuration = `${item.duration.toFixed(2)}s, ${Math.max(2.6, item.duration * 0.6).toFixed(2)}s`;
+                outer.style.animationDelay = `${item.delay.toFixed(2)}s, ${item.delay.toFixed(2)}s`;
+            }
+            outer.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                if (!state.roundActive || state.roundToken !== token) return;
+                if (outer.dataset.correct === 'true') {
+                    state.roundActive = false;
+                    layer.style.pointerEvents = 'none';
+                    outer.style.animationPlayState = 'paused';
+                    inner.classList.add('falling-hit');
+                    const r = outer.getBoundingClientRect();
+                    Particles.spawn(r.left + r.width / 2, r.top + r.height / 2);
+                    AudioSys.playCoin();
+                    setTimeout(() => {
+                        this.clearPinyinRainRound();
+                        state.index++;
+                        this.nextPinyinRainRound();
+                    }, 400);
+                } else {
+                    this.endPinyinRainFail('wrong');
+                }
+            });
+
+            outer.addEventListener('animationend', () => {
+                if (!state.roundActive || state.roundToken !== token) return;
+                if (outer.dataset.correct === 'true') {
+                    this.endPinyinRainFail('miss');
+                } else {
+                    outer.remove();
+                }
+            });
+
+            layer.appendChild(outer);
+        });
+    },
+
+    endPinyinRainSuccess: function () {
+        if (!this.pinyinRainState) return;
+        this.pinyinRainState = null;
+        this.isPinyinRainMode = false;
+        this.active = false;
+        this.clearPinyinRainRound();
+        AudioSys.stopBgm();
+        AudioSys.playWin();
+        document.getElementById('pinyin-rain-win-modal').style.display = 'flex';
+    },
+
+    endPinyinRainFail: function () {
+        if (!this.pinyinRainState) return;
+        const board = document.getElementById('game-board');
+        if (board) {
+            board.classList.add('board-shake');
+            setTimeout(() => board.classList.remove('board-shake'), 500);
+        }
+        this.pinyinRainState = null;
+        this.isPinyinRainMode = false;
+        this.active = false;
+        this.clearPinyinRainRound();
+        AudioSys.stopBgm();
+        AudioSys.playError();
+        document.getElementById('pinyin-rain-fail-modal').style.display = 'flex';
+    },
+
+    replayPinyinRain: function () {
+        document.getElementById('pinyin-rain-win-modal').style.display = 'none';
+        document.getElementById('pinyin-rain-fail-modal').style.display = 'none';
+        this.openPinyinRain();
+    },
+
+    exitPinyinRainToMap: function () {
+        document.getElementById('pinyin-rain-win-modal').style.display = 'none';
+        document.getElementById('pinyin-rain-fail-modal').style.display = 'none';
+        this.exitPinyinRain();
+        HomeDashboard.show();
+        this.showLevelMap();
+    },
+
+    exitPinyinRain: function () {
+        this.pinyinRainState = null;
+        this.isPinyinRainMode = false;
+        this.active = false;
+        AudioSys.stopBgm();
+        const board = document.getElementById('game-board');
+        if (board) {
+            board.classList.remove('rain-board');
+            board.innerHTML = '';
+            board.style.display = 'grid';
+        }
+    },
+
     startBlindBoxChallenge: function (timeLimit) {
         const totalLevels = this.config.length;
         const maxUnlocked = SaveSystem.gradeData.maxLevel;
@@ -1838,7 +2387,8 @@ const Game = {
         const hudRect = hud ? hud.getBoundingClientRect() : null;
         const top = (hudRect ? hudRect.bottom + 18 : 128);
         prepareCountdown.style.cssText = `position: fixed; left: 0; right: 0; top: ${top}px; margin: 0 auto; width: max-content; max-width: 90vw; text-align: center; background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%); color: white; padding: 8px 16px; border-radius: 20px; font-size: 1.1rem; font-weight: bold; box-shadow: 0 4px 15px rgba(255,107,107,0.4); animation: countdown-pulse 1s ease-in-out infinite; z-index: 260; pointer-events: none;`;
-        prepareCountdown.innerHTML = '倒计时准备: 5';
+        const prepSeconds = timeLimit <= 9 ? 10 : 5;
+        prepareCountdown.innerHTML = `倒计时准备: ${prepSeconds}`;
         document.body.appendChild(prepareCountdown);
 
         // 禁用游戏交互
@@ -1859,8 +2409,8 @@ const Game = {
                 `;
         document.head.appendChild(style);
 
-        // 5秒倒计时
-        let countdown = 5;
+        // 准备倒计时（极短时间翻倍）
+        let countdown = prepSeconds;
         const countdownTimer = setInterval(() => {
             countdown--;
             if (countdown > 0) {
@@ -2136,6 +2686,7 @@ const Game = {
     },
     showLevelMap: function () {
         AudioSys.playAdventure();
+        if (this.isPinyinRainMode) this.exitPinyinRain();
         document.getElementById('map-modal').style.display = 'flex';
         document.getElementById('win-modal').style.display = 'none';
         const map = document.getElementById('level-map'); map.innerHTML = '';
