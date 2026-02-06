@@ -3,488 +3,368 @@ export const fullVocabulary = [
     // 第一单元：识字
     // ==========================================
 
-    // --- 1. 春夏秋冬 ---
-    { char: "霜", pinyin: "shuāng", words: ["霜降", "冰霜", "风霜"], desc: "气温很低时，水汽在地面或植物上凝成的白色结晶。" },
-    { char: "吹", pinyin: "chuī", words: ["吹风", "吹气", "吹牛"], desc: "合拢嘴唇用力出气；使空气流动。" },
+    // --- 1. 天地人 ---
+    { char: "天", pinyin: "tiān", words: ["天空", "白天", "春天"], desc: "日月星辰所在的空间；天气。" },
+    { char: "地", pinyin: "dì", words: ["土地", "大地", "地方"], desc: "地球表面的土壤和岩石；区域。" },
+    { char: "人", pinyin: "rén", words: ["人民", "大人", "人口"], desc: "能制造工具、有语言和思维能力的高等动物。" },
+
+    // --- 2. 金木水火土 ---
+    { char: "金", pinyin: "jīn", words: ["金色", "金子", "金属"], desc: "一种黄色、有光泽的贵重金属；泛指金属。" },
+    { char: "木", pinyin: "mù", words: ["木头", "树木", "木材"], desc: "树木的通称；木料。" },
+    { char: "水", pinyin: "shuǐ", words: ["河水", "开水", "水果"], desc: "无色无味的液体，生命之源。" },
+    { char: "火", pinyin: "huǒ", words: ["火山", "大火", "火花"], desc: "物体燃烧时发出的光和热；紧急情况。" },
+    { char: "土", pinyin: "tǔ", words: ["泥土", "土地", "土豆"], desc: "地面上的泥沙混合物；国土。" },
+
+    // --- 3. 口耳目 ---
+    { char: "口", pinyin: "kǒu", words: ["门口", "开口", "口水"], desc: "人或动物进食、呼吸、说话的器官。" },
+    { char: "耳", pinyin: "ěr", words: ["耳朵", "耳机", "木耳"], desc: "听觉器官；形状像耳的东西。" },
+    { char: "目", pinyin: "mù", words: ["目光", "目录", "双目"], desc: "眼睛；看；大项下的小项。" },
+
+    // --- 4. 日月山川 ---
+    { char: "日", pinyin: "rì", words: ["日子", "日本", "日光"], desc: "太阳；一天的时间；日期。" },
+    { char: "月", pinyin: "yuè", words: ["月亮", "月份", "月光"], desc: "地球的卫星；时间单位（30天左右）；形状像月牙的东西。" },
+    { char: "山", pinyin: "shān", words: ["高山", "火山", "山水"], desc: "地面上由土石构成的高耸部分。" },
+    { char: "川", pinyin: "chuān", words: ["山川", "四川", "河川"], desc: "河流；平地；四川简称。" },
+
+    // --- 5. 对韵歌 ---
+    { char: "云", pinyin: "yún", words: ["白云", "云朵", "云彩"], desc: "空气中悬浮的水滴或冰晶组成的可见集合体。" },
+    { char: "雨", pinyin: "yǔ", words: ["下雨", "雨水", "雨伞"], desc: "从云中降落到地面的水滴。" },
+    { char: "风", pinyin: "fēng", words: ["大风", "春风", "风扇"], desc: "空气流动形成的自然现象。" },
+    { char: "花", pinyin: "huā", words: ["花朵", "开花", "花生"], desc: "植物的繁殖器官；美丽的事物；用掉（钱）。" },
+    { char: "鸟", pinyin: "niǎo", words: ["小鸟", "鸟儿", "鸟巢"], desc: "有羽毛、会飞的卵生脊椎动物。" },
+
+    // ==========================================
+    // 第二单元：汉语拼音（不设会认/会写字，跳过）
+    // ==========================================
+
+    // ==========================================
+    // 第三单元：识字（续）
+    // ==========================================
+
+    // --- 6. 画 ---
+    { char: "画", pinyin: "huà", words: ["画画", "图画", "画家"], desc: "用笔等工具描绘形象；图画。" },
+    { char: "打", pinyin: "dǎ", words: ["打鼓", "打人", "打电话"], desc: "敲击；殴打；进行某种活动（如打球、打电话）。" },
+
+    // --- 7. 大小多少 ---
+    { char: "大", pinyin: "dà", words: ["大小", "大家", "大树"], desc: "体积、面积、数量等超过一般；年龄长。" },
+    { char: "小", pinyin: "xiǎo", words: ["小手", "小心", "小鸟"], desc: "体积、面积、数量等不及一般；年纪轻。" },
+    { char: "多", pinyin: "duō", words: ["多少", "多人", "很多"], desc: "数量大；超过原有数量。" },
+    { char: "少", pinyin: "shǎo", words: ["多少", "少见", "少量"], desc: "数量小；缺少。" },
+
+    // --- 8. 小书包 ---
+    { char: "书", pinyin: "shū", words: ["书本", "读书", "书写"], desc: "装订成册的著作；文字；信件。" },
+    { char: "包", pinyin: "bāo", words: ["书包", "包子", "包括"], desc: "用纸、布等裹起来；包裹；保证完成。" },
+
+    // --- 9. 日月明 ---
+    { char: "日", pinyin: "rì", words: ["日光", "日记", "日出"], desc: "太阳；一天的时间；日期。" },
+    { char: "月", pinyin: "yuè", words: ["月牙", "月球", "月夜"], desc: "月亮；时间单位；形状像月牙的东西。" },
+    { char: "明", pinyin: "míng", words: ["明天", "明亮", "明白"], desc: "亮；清楚；公开；懂得。" },
+
+    // --- 10. 升国旗 ---
+    { char: "升", pinyin: "shēng", words: ["升高", "上升", "升旗"], desc: "由低往高移动；提高；登。" },
+    { char: "国", pinyin: "guó", words: ["国家", "中国", "国旗"], desc: "有领土、人民、主权的政体；祖国。" },
+    { char: "旗", pinyin: "qí", words: ["国旗", "红旗", "旗帜"], desc: "用布、绸等做成的标志；象征。" },
+
+    // ==========================================
+    // 第四单元：课文（一）
+    // ==========================================
+
+    // --- 课文1：秋天 ---
+    { char: "了", pinyin: "le", words: ["来了", "走了", "好了"], desc: "助词，表示动作完成或变化实现。" },
+    { char: "子", pinyin: "zi", words: ["叶子", "儿子", "桌子"], desc: "古代对男子的尊称；小的东西；名词后缀。" },
+    { char: "人", pinyin: "rén", words: ["人们", "工人", "农民"], desc: "能制造工具、有语言和思维能力的高等动物。" },
+    { char: "大", pinyin: "dà", words: ["大人", "大海", "大声"], desc: "体积、面积、数量等超过一般；年龄长。" },
+    { char: "片", pinyin: "piàn", words: ["一片", "叶片", "图片"], desc: "平而薄的物体；量词（用于扁平物或区域）。" },
+    { char: "会", pinyin: "huì", words: ["开会", "学会", "不会"], desc: "能；擅长；聚会；理解。" },
+    { char: "个", pinyin: "gè", words: ["一个", "个人", "个别"], desc: "通用量词；单独的。" },
+
+    // --- 课文2：小小的船 ---
+    { char: "月", pinyin: "yuè", words: ["月牙", "月光", "月亮"], desc: "月亮；时间单位；形状像月牙的东西。" },
+    { char: "儿", pinyin: "ér", words: ["儿子", "女儿", "小儿"], desc: "孩子；雄性动物；名词后缀（儿化音）。" },
+    { char: "头", pinyin: "tóu", words: ["头发", "石头", "开头"], desc: "人体最上部；物体前端；首领；量词。" },
+    { char: "里", pinyin: "lǐ", words: ["里面", "公里", "心里"], desc: "内部；距离单位（一里=500米）；家乡。" },
+
+    // --- 课文3：江南 ---
+    { char: "可", pinyin: "kě", words: ["可以", "可爱", "可是"], desc: "许可；值得；但。" },
+    { char: "东", pinyin: "dōng", words: ["东方", "东风", "东边"], desc: "太阳升起的方向；地区名（如东北）。" },
+    { char: "西", pinyin: "xī", words: ["西方", "西瓜", "夕阳"], desc: "太阳落下的方向；地区名（如山西）。" },
+    { char: "北", pinyin: "běi", words: ["北方", "北极", "北京"], desc: "与南相对的方向；地区名（如河北）。" },
+    { char: "江", pinyin: "jiāng", words: ["长江", "江水", "江南"], desc: "大河；特指长江。" },
+    { char: "南", pinyin: "nán", words: ["南方", "南瓜", "南极"], desc: "与北相对的方向；地区名（如湖南）。" },
+
+    // --- 课文4：四季 ---
+    { char: "春", pinyin: "chūn", words: ["春天", "春风", "春雨"], desc: "一年的第一季，万物生长；生机勃勃。" },
+    { char: "夏", pinyin: "xià", words: ["夏天", "夏日", "夏季"], desc: "一年的第二季，炎热多雨。" },
+    { char: "秋", pinyin: "qiū", words: ["秋天", "秋风", "秋收"], desc: "一年的第三季，果实成熟；收获。" },
+    { char: "冬", pinyin: "dōng", words: ["冬天", "冬雪", "冬季"], desc: "一年的第四季，寒冷少雨；结束。" },
+    { char: "雪", pinyin: "xuě", words: ["雪花", "下雪", "雪人"], desc: "空中降落的白色结晶状水汽凝华物。" },
+    { char: "肚", pinyin: "dù", words: ["肚子", "肚皮", "鱼肚"], desc: "腹部；器物凸出的部分。" },
+    { char: "就", pinyin: "jiù", words: ["就是", "就要", "成就"], desc: "副词，表示立即、仅、已经；靠近。" },
+    { char: "是", pinyin: "shì", words: ["是的", "不是", "是非"], desc: "判断动词（等于、属于）；这、此。" },
+
+    // ==========================================
+    // 会写字（“我会写”部分）—— 第1–4课（共20字）
+    // ==========================================
+
+    // 识字1：天地人（会写字：无）
+    // 识字2：金木水火土（会写字：无）
+    // 识字3：口耳目（会写字：无）
+    // 识字4：日月山川（会写字：无）
+    // 识字5：对韵歌（会写字：无）
+
+    // 课文1：秋天（会写字）
+    { char: "了", pinyin: "le", words: ["来了", "走了", "好了"], desc: "助词，表示动作完成或变化实现。", type: "writing" },
+    { char: "子", pinyin: "zi", words: ["叶子", "儿子", "桌子"], desc: "小的东西；名词后缀。", type: "writing" },
+    { char: "人", pinyin: "rén", words: ["人们", "工人", "农民"], desc: "能制造工具、有语言和思维能力的高等动物。", type: "writing" },
+    { char: "大", pinyin: "dà", words: ["大人", "大海", "大声"], desc: "体积、面积、数量等超过一般；年龄长。", type: "writing" },
+    { char: "片", pinyin: "piàn", words: ["一片", "叶片", "图片"], desc: "平而薄的物体；量词（用于扁平物或区域）。", type: "writing" },
+
+    // 课文2：小小的船（会写字）
+    { char: "月", pinyin: "yuè", words: ["月牙", "月光", "月亮"], desc: "月亮；时间单位；形状像月牙的东西。", type: "writing" },
+    { char: "儿", pinyin: "ér", words: ["儿子", "女儿", "小儿"], desc: "孩子；名词后缀（儿化音）。", type: "writing" },
+    { char: "头", pinyin: "tóu", words: ["头发", "石头", "开头"], desc: "人体最上部；物体前端；量词。", type: "writing" },
+    { char: "里", pinyin: "lǐ", words: ["里面", "公里", "心里"], desc: "内部；距离单位（一里=500米）；家乡。", type: "writing" },
+
+    // 课文3：江南（会写字）
+    { char: "可", pinyin: "kě", words: ["可以", "可爱", "可是"], desc: "许可；值得；但。", type: "writing" },
+    { char: "东", pinyin: "dōng", words: ["东方", "东风", "东边"], desc: "太阳升起的方向；地区名。", type: "writing" },
+    { char: "西", pinyin: "xī", words: ["西方", "西瓜", "夕阳"], desc: "太阳落下的方向；地区名。", type: "writing" },
+    { char: "北", pinyin: "běi", words: ["北方", "北极", "北京"], desc: "与南相对的方向；地区名。", type: "writing" },
+    { char: "江", pinyin: "jiāng", words: ["长江", "江水", "江南"], desc: "大河；特指长江。", type: "writing" },
+    { char: "南", pinyin: "nán", words: ["南方", "南瓜", "南极"], desc: "与北相对的方向；地区名。", type: "writing" },
+
+    // 课文4：四季（会写字）
+    { char: "春", pinyin: "chūn", words: ["春天", "春风", "春雨"], desc: "一年的第一季，万物生长。", type: "writing" },
+    { char: "夏", pinyin: "xià", words: ["夏天", "夏日", "夏季"], desc: "一年的第二季，炎热多雨。", type: "writing" },
+    { char: "秋", pinyin: "qiū", words: ["秋天", "秋风", "秋收"], desc: "一年的第三季，果实成熟。", type: "writing" },
+    { char: "冬", pinyin: "dōng", words: ["冬天", "冬雪", "冬季"], desc: "一年的第四季，寒冷少雨。", type: "writing" },
+
+
+    // ==========================================
+    // 第五单元：课文（二）—— 续
+    // ==========================================
+
+    // --- 课文5：影子 ---
+    { char: "在", pinyin: "zài", words: ["在家", "现在", "存在"], desc: "存留于某地点；正在（进行时）；表示强调。" },
+    { char: "那", pinyin: "nà", words: ["那里", "那边", "那么"], desc: "指示代词，指较远的人或事物。" },
+    { char: "着", pinyin: "zhe", words: ["看着", "听着", "笑着"], desc: "助词，表示动作持续或状态延续。" },
+    { char: "朋", pinyin: "péng", words: ["朋友", "亲朋", "故朋"], desc: "彼此有交情的人。" },
+    { char: "友", pinyin: "yǒu", words: ["友好", "友谊", "战友"], desc: "互相帮助、共同进步的人；亲近。" },
+
+    // --- 课文6：比尾巴 ---
+    { char: "巴", pinyin: "bā", words: ["尾巴", "下巴", "巴士"], desc: "长条形柔软的东西末端；量词（用于‘尾巴’）。" },
+    { char: "谁", pinyin: "shuí", words: ["谁的", "是谁", "谁家"], desc: "疑问代词，指不确定的人。" },
+    { char: "长", pinyin: "cháng", words: ["很长", "长江", "长短"], desc: "两端距离大；时间久；长度。" },
+    { char: "短", pinyin: "duǎn", words: ["短处", "短发", "短小"], desc: "两端距离小；时间少；缺点。" },
+    { char: "把", pinyin: "bǎ", words: ["把手", "一把", "把握"], desc: "量词（用于有把手的工具）；握；控制。" },
+
+    // --- 课文7：青蛙写诗 ---
+    { char: "下", pinyin: "xià", words: ["下雨", "下面", "下来"], desc: "位置在低处；由高到低；次序靠后。" },
+    { char: "个", pinyin: "gè", words: ["一个", "个人", "个别"], desc: "通用量词；单独的。" },
+    { char: "们", pinyin: "men", words: ["我们", "你们", "他们"], desc: "代词后缀，表示复数。" },
+    { char: "伞", pinyin: "sǎn", words: ["雨伞", "降落伞", "阳伞"], desc: "遮蔽日光或雨雪的用具。" },
+
+    // --- 课文8：雨点儿 ---
+    { char: "问", pinyin: "wèn", words: ["问好", "问题", "问候"], desc: "向人打听；提出问题；责问。" },
+    { char: "有", pinyin: "yǒu", words: ["有水", "有人", "有力"], desc: "存在；所属；发生。" },
+    { char: "半", pinyin: "bàn", words: ["一半", "半天", "半空"], desc: "二分之一；不完全；中间。" },
+    { char: "从", pinyin: "cóng", words: ["从来", "从前", "从此"], desc: "自；由；跟随。" },
+
+    // --- 课文9：明天要远足 ---
+    { char: "才", pinyin: "cái", words: ["刚才", "才能", "才华"], desc: "刚刚；仅仅；只有（这样）才……。" },
+    { char: "明", pinyin: "míng", words: ["明天", "明亮", "明白"], desc: "亮；清楚；公开；懂得。" },
+    { char: "同", pinyin: "tóng", words: ["同学", "同意", "相同"], desc: "一样；共同；和……一样。" },
+    { char: "学", pinyin: "xué", words: ["学习", "学生", "学问"], desc: "效法；知识；学校。" },
+
+    // --- 课文10：大还是小 ---
+    { char: "自", pinyin: "zì", words: ["自己", "自由", "自觉"], desc: "本人；自然；从……起。" },
+    { char: "己", pinyin: "jǐ", words: ["自己", "知己", "己见"], desc: "自身；天干第六位。" },
+    { char: "衣", pinyin: "yī", words: ["衣服", "上衣", "大衣"], desc: "穿在身上御寒、遮羞的物品。" },
+    { char: "服", pinyin: "fú", words: ["服装", "服从", "服务"], desc: "衣裳；信服；从事（工作）。" },
+
+    // --- 课文11：项链 ---
+    { char: "蓝", pinyin: "lán", words: ["蓝色", "蓝天", "蓝图"], desc: "像晴天天空的颜色；技术先进。" },
+    { char: "又", pinyin: "yòu", words: ["又大", "又高", "又快"], desc: "重复；更加；连词（表并列）。" },
+    { char: "笑", pinyin: "xiào", words: ["笑话", "微笑", "笑脸"], desc: "露出愉快表情；讥笑。" },
+    { char: "着", pinyin: "zhe", words: ["笑着", "看着", "听着"], desc: "助词，表示动作持续或状态延续。" },
+
+    // --- 课文12：雪地里的小画家 ---
+    { char: "竹", pinyin: "zhú", words: ["竹子", "竹叶", "竹林"], desc: "常绿乔木，茎中空有节；竹简。" },
+    { char: "牙", pinyin: "yá", words: ["牙齿", "牙刷", "牙疼"], desc: "咀嚼和发音的器官；形状像牙的东西。" },
+    { char: "马", pinyin: "mǎ", words: ["马上", "马车", "马路"], desc: "哺乳动物，善跑；姓氏；古代军事单位。" },
+    { char: "用", pinyin: "yòng", words: ["有用", "用力", "作用"], desc: "使用；需要；功能。" },
+
+    // --- 课文13：乌鸦喝水 ---
+    { char: "鸟", pinyin: "niǎo", words: ["小鸟", "鸟儿", "鸟巢"], desc: "有羽毛、会飞的卵生脊椎动物。" },
+    { char: "石", pinyin: "shí", words: ["石头", "石油", "石子"], desc: "构成地壳的坚硬物质；量词（如‘一石米’）。" },
+    { char: "多", pinyin: "duō", words: ["多少", "多人", "很多"], desc: "数量大；超过原有数量。" },
+    { char: "出", pinyin: "chū", words: ["出来", "出去", "出现"], desc: "从里面到外面；显露；产生。" },
+
+    // --- 课文14：小蜗牛 ---
+    { char: "爬", pinyin: "pá", words: ["爬山", "爬行", "爬虫"], desc: "手足并用向前移动；攀登。" },
+    { char: "遍", pinyin: "biàn", words: ["一遍", "几遍", "遍地"], desc: "量词（次）；普遍。" },
+    { char: "变", pinyin: "biàn", words: ["变化", "变成", "变换"], desc: "改变；情况不同。" },
+    { char: "全", pinyin: "quán", words: ["全部", "全家", "安全"], desc: "完整；都；完备。" },
+
+    // ==========================================
+    // 语文园地（集中识字）—— 全部收录
+    // ==========================================
+
+    // 语文园地一：识字加油站（家庭成员）
+    { char: "爸", pinyin: "bà", words: ["爸爸", "老爸", "阿爸"], desc: "父亲；对男性长辈的尊称。" },
+    { char: "妈", pinyin: "mā", words: ["妈妈", "大妈", "姑妈"], desc: "母亲；对女性长辈的尊称。" },
+    { char: "爷", pinyin: "yé", words: ["爷爷", "老爷", "少爷"], desc: "祖父；旧时对男子的尊称。" },
+    { char: "奶", pinyin: "nǎi", words: ["奶奶", "牛奶", "奶瓶"], desc: "祖母；乳汁；哺乳。" },
+    { char: "哥", pinyin: "gē", words: ["哥哥", "大哥", "表哥"], desc: "兄长；对男青年的称呼。" },
+    { char: "姐", pinyin: "jiě", words: ["姐姐", "大姐", "表姐"], desc: "姐姐；对女青年的称呼。" },
+
+    // 语文园地二：字词句运用（反义词拓展）
+    { char: "黑", pinyin: "hēi", words: ["黑色", "黑夜", "黑板"], desc: "像煤或墨的颜色；秘密；非法。" },
+    { char: "白", pinyin: "bái", words: ["白色", "白天", "明白"], desc: "像霜雪的颜色；清楚；空；陈述。" },
+    { char: "晚", pinyin: "wǎn", words: ["晚上", "晚会", "晚霞"], desc: "时间靠后；迟；后来。" },
+    { char: "早", pinyin: "zǎo", words: ["早上", "早晨", "早日"], desc: "时间靠前；清晨；快。" },
+
+    // 语文园地三：识字加油站（身体部位）
+    { char: "耳", pinyin: "ěr", words: ["耳朵", "耳机", "木耳"], desc: "听觉器官；形状像耳的东西。" },
+    { char: "目", pinyin: "mù", words: ["目光", "目录", "双目"], desc: "眼睛；看；大项下的小项。" },
+    { char: "口", pinyin: "kǒu", words: ["门口", "开口", "口水"], desc: "人或动物进食、呼吸、说话的器官。" },
+    { char: "手", pinyin: "shǒu", words: ["手指", "双手", "手机"], desc: "人体上肢前端部分；技能；量词。" },
+    { char: "足", pinyin: "zú", words: ["足够", "足球", "立足"], desc: "脚；充足；值得。" },
+
+    // 语文园地四：日积月累（古诗《风》）
+    { char: "解", pinyin: "jiě", words: ["解开", "理解", "解释"], desc: "分开；明白；消除。" },
     { char: "落", pinyin: "luò", words: ["落叶", "落下", "落后"], desc: "物体因失去支持而掉下；下降。" },
-    { char: "降", pinyin: "jiàng", words: ["降落", "下降", "降雨"], desc: "从高处移到低处；落下。" },
-    { char: "飘", pinyin: "piāo", words: ["飘落", "飘扬", "飘荡"], desc: "随风摇动或飞扬。" },
-    { char: "游", pinyin: "yóu", words: ["游泳", "游玩", "旅游"], desc: "在水里行动；行走、游览。" },
-    { char: "池", pinyin: "chí", words: ["水池", "池塘", "电池"], desc: "人工挖成的蓄水洼地。" },
-    // 会写字（含上册复习字，本册要求书写）
-    { char: "春", pinyin: "chūn", words: ["春天", "春节", "春风"], desc: "四季之首，气候转暖，植物生长的季节。" },
-    { char: "冬", pinyin: "dōng", words: ["冬天", "冬季", "冬眠"], desc: "四季的最后一季，天气寒冷。" },
-    { char: "风", pinyin: "fēng", words: ["大风", "风雨", "风筝"], desc: "空气流动的现象。" },
-    { char: "雪", pinyin: "xuě", words: ["下雪", "雪花", "雪人"], desc: "空中降落的白色冰晶。" },
-    { char: "花", pinyin: "huā", words: ["花朵", "开花", "花园"], desc: "植物的繁殖器官，色彩鲜艳。" },
-    { char: "飞", pinyin: "fēi", words: ["飞机", "飞鸟", "飞翔"], desc: "在空中移动。" },
-    { char: "入", pinyin: "rù", words: ["入口", "进入", "入学"], desc: "从外到内。" },
+    { char: "花", pinyin: "huā", words: ["花朵", "开花", "花生"], desc: "植物的繁殖器官；美丽的事物；用掉（钱）。" },
 
-    // --- 2. 姓氏歌 ---
-    { char: "姓", pinyin: "xìng", words: ["姓名", "百姓", "同姓"], desc: "表明家族系统的字，如张、李。" },
-    { char: "氏", pinyin: "shì", words: ["姓氏", "氏族"], desc: "古代姓的分支，现多与‘姓’连用。" },
-    { char: "李", pinyin: "lǐ", words: ["李子", "姓李", "桃李"], desc: "李树的果实；常见姓氏。" },
-    { char: "张", pinyin: "zhāng", words: ["姓张", "张开", "纸张"], desc: "展开；常见姓氏。" },
-    { char: "古", pinyin: "gǔ", words: ["古代", "古人", "古诗"], desc: "很久以前的时代。" },
-    { char: "吴", pinyin: "wú", words: ["吴国", "东吴", "姓吴"], desc: "周代诸侯国名；姓氏。" },
-    { char: "赵", pinyin: "zhào", words: ["赵国", "姓赵"], desc: "周代诸侯国名；姓氏。" },
-    { char: "钱", pinyin: "qián", words: ["金钱", "钱币", "姓钱"], desc: "货币；姓氏。" },
-    { char: "孙", pinyin: "sūn", words: ["孙子", "子孙", "姓孙"], desc: "儿子的儿子；姓氏。" },
-    { char: "周", pinyin: "zhōu", words: ["周末", "四周", "姓周"], desc: "环绕；姓氏。" },
-    { char: "官", pinyin: "guān", words: ["官员", "当官", "官府"], desc: "政府职务人员。" },
-    { char: "王", pinyin: "wáng", words: ["国王", "王子", "姓王"], desc: "君主；最常见姓氏之一。" },
-    // 会写字
-    { char: "什", pinyin: "shén", words: ["什么"], desc: "疑问代词（此处读轻声shén）。" },
-    { char: "么", pinyin: "me", words: ["什么", "这么", "那么"], desc: "助词，常与‘什’连用（读轻声me）。" },
-    { char: "双", pinyin: "shuāng", words: ["双手", "双人", "双胞胎"], desc: "两个；成对的。" },
-    { char: "国", pinyin: "guó", words: ["国家", "中国", "国庆"], desc: " nation；疆域。" },
-    { char: "方", pinyin: "fāng", words: ["方向", "地方", "方法"], desc: "地区；方法；正直。" },
+    // 语文园地五：识字加油站（自然现象）
+    { char: "云", pinyin: "yún", words: ["白云", "云朵", "云彩"], desc: "空气中悬浮的水滴或冰晶组成的可见集合体。" },
+    { char: "雨", pinyin: "yǔ", words: ["下雨", "雨水", "雨伞"], desc: "从云中降落到地面的水滴。" },
+    { char: "风", pinyin: "fēng", words: ["大风", "春风", "风扇"], desc: "空气流动形成的自然现象。" },
+    { char: "雪", pinyin: "xuě", words: ["雪花", "下雪", "雪人"], desc: "空中降落的白色结晶状水汽凝华物。" },
 
-    // --- 3. 小青蛙 ---
-    { char: "青", pinyin: "qīng", words: ["青蛙", "青草", "青色"], desc: "绿色，如青草。" },
-    { char: "清", pinyin: "qīng", words: ["清水", "清楚", "清洁"], desc: "水纯净透明；明白。" },
-    { char: "晴", pinyin: "qíng", words: ["晴天", "晴朗"], desc: "天空无云，阳光充足。" },
-    { char: "睛", pinyin: "jīng", words: ["眼睛", "目不转睛"], desc: "眼珠；视觉器官。" },
-    { char: "请", pinyin: "qǐng", words: ["请坐", "请问", "请求"], desc: "有礼貌地要求或邀请。" },
-    { char: "情", pinyin: "qíng", words: ["心情", "事情", "友情"], desc: "内心感受；状况。" },
-    { char: "生", pinyin: "shēng", words: ["学生", "生日", "生活"], desc: "出生；活着；学习的人。" },
-    { char: "气", pinyin: "qì", words: ["空气", "生气", "天气"], desc: "气体；情绪。" },
-    { char: "病", pinyin: "bìng", words: ["生病", "病人", "疾病"], desc: "身体不适的状态。" },
-    { char: "护", pinyin: "hù", words: ["保护", "护士", "爱护"], desc: "保卫照料，使不受损害。" },
-    { char: "害", pinyin: "hài", words: ["害虫", "害怕", "害处"], desc: "造成损伤的事物；畏惧。" },
-    { char: "事", pinyin: "shì", words: ["事情", "故事", "做事"], desc: "人类活动的总称。" },
-    { char: "让", pinyin: "ràng", words: ["让路", "让座", "谦让"], desc: "把方便或好处给别人。" },
-    { char: "家", pinyin: "jiā", words: ["家庭", "家人", "回家"], desc: "住所；亲属群体。" },
+    // 语文园地六：字词句运用（量词）
+    { char: "群", pinyin: "qún", words: ["一群", "羊群", "群众"], desc: "聚在一起的同类人或动物；集体。" },
+    { char: "只", pinyin: "zhī", words: ["一只", "只要", "只有"], desc: "量词（用于飞禽、走兽、某些小东西）；仅。" },
+    { char: "条", pinyin: "tiáo", words: ["一条", "条件", "条件"], desc: "量词（用于长条形物、细长物）；枝条。" },
 
-    // --- 4. 猜字谜 ---
-    { char: "字", pinyin: "zì", words: ["汉字", "写字", "生字"], desc: "记录语言的符号。" },
-    { char: "左", pinyin: "zuǒ", words: ["左边", "左手", "左右"], desc: "面向南时靠东的一边。" },
-    { char: "右", pinyin: "yòu", words: ["右边", "右手", "左右"], desc: "面向南时靠西的一边。" },
-    { char: "红", pinyin: "hóng", words: ["红色", "红花", "红旗"], desc: "像鲜血的颜色，象征喜庆。" },
-    { char: "时", pinyin: "shí", words: ["时间", "小时", "有时"], desc: "时刻；一段时间。" },
-    { char: "动", pinyin: "dòng", words: ["动作", "动物", "运动"], desc: "改变位置或状态。" },
-    { char: "万", pinyin: "wàn", words: ["万一", "万物", "百万"], desc: "数目单位；极多。" },
-    { char: "相", pinyin: "xiāng", words: ["互相", "相同", "相信"], desc: "交互；彼此。" },
-    { char: "遇", pinyin: "yù", words: ["遇到", "相遇", "遇见"], desc: "碰到（人或事）。" },
-    { char: "喜", pinyin: "xǐ", words: ["喜欢", "欢喜", "喜事"], desc: "高兴、愉快的情绪。" },
-    { char: "欢", pinyin: "huān", words: ["欢乐", "欢迎", "欢笑"], desc: "快乐；高兴。" },
-    { char: "怕", pinyin: "pà", words: ["害怕", "可怕", "别怕"], desc: "恐惧；担心。" },
-    { char: "言", pinyin: "yán", words: ["语言", "发言", "名言"], desc: "说的话；汉字部首。" },
-    { char: "互", pinyin: "hù", words: ["互相", "互助", "互动"], desc: "彼此；双方。" },
-    { char: "令", pinyin: "lìng", words: ["命令", "令箭", "县令"], desc: "上级指示；使。" },
-    // 会写字补充
-    { char: "动", pinyin: "dòng", words: ["动作", "动物", "运动"], desc: "改变位置或状态。" }, // 重复字保留（教材会写字要求）
-    { char: "万", pinyin: "wàn", words: ["万一", "万物", "百万"], desc: "数目单位；极多。" },
+    // 语文园地七：识字加油站（日常用品）
+    { char: "文", pinyin: "wén", words: ["文字", "文化", "文明"], desc: "记录语言的符号；礼乐制度；温和。" },
+    { char: "具", pinyin: "jù", words: ["工具", "具体", "家具"], desc: "器具；具有；备有。" },
+    { char: "尺", pinyin: "chǐ", words: ["尺子", "尺寸", "尺幅"], desc: "长度单位（一尺≈33.3厘米）；量具。" },
+
+    // 语文园地八：日积月累（《悯农》）
+    { char: "锄", pinyin: "chú", words: ["锄头", "锄草", "锄地"], desc: "松土除草的农具；用锄松土。" },
+    { char: "禾", pinyin: "hé", words: ["禾苗", "禾谷", "禾场"], desc: "谷类作物的幼苗；泛指庄稼。" },
+    { char: "日", pinyin: "rì", words: ["日光", "日记", "日出"], desc: "太阳；一天的时间；日期。" },
+    { char: "当", pinyin: "dāng", words: ["当时", "应当", "当地"], desc: "面对；主持；应该；充任。" },
 
     // ==========================================
-    // 第二单元：课文
+    // 会写字（“我会写”部分）—— 第5–14课 + 语文园地（共80字）
     // ==========================================
 
-    // --- 1. 吃水不忘挖井人 ---
-    { char: "吃", pinyin: "chī", words: ["吃饭", "吃水", "小吃"], desc: "把食物送入口中咽下。" },
-    { char: "忘", pinyin: "wàng", words: ["忘记", "难忘", "忘掉"], desc: "不记得；疏忽。" },
-    { char: "井", pinyin: "jǐng", words: ["水井", "井口", "井底"], desc: "人工挖的取水深洞。" },
-    { char: "村", pinyin: "cūn", words: ["农村", "山村", "村民"], desc: "乡下聚居地。" },
-    { char: "叫", pinyin: "jiào", words: ["叫喊", "名叫", "大叫"], desc: "大声说；称呼。" },
-    { char: "毛", pinyin: "máo", words: ["毛笔", "毛发", "羊毛"], desc: "动植物表皮的丝状物。" },
-    { char: "主", pinyin: "zhǔ", words: ["主人", "主要", "主席"], desc: "最重要的；掌管者。" },
-    { char: "席", pinyin: "xí", words: ["主席", "席位", "酒席"], desc: "铺垫物；职位。" },
-    { char: "乡", pinyin: "xiāng", words: ["乡村", "家乡", "老乡"], desc: "农村；出生地。" },
-    { char: "亲", pinyin: "qīn", words: ["亲人", "亲切", "亲自"], desc: "有血缘关系的人；接近。" },
-    { char: "战", pinyin: "zhàn", words: ["战士", "战斗", "战争"], desc: "武力对抗；激烈斗争。" },
-    { char: "士", pinyin: "shì", words: ["战士", "士兵", "女士"], desc: "军人；对男子的尊称。" },
-    { char: "面", pinyin: "miàn", words: ["见面", "面条", "面粉"], desc: "脸；食物；表面。" },
-    // 会写字
-    { char: "主", pinyin: "zhǔ", words: ["主人", "主要", "主席"], desc: "最重要的；掌管者。" },
-    { char: "江", pinyin: "jiāng", words: ["长江", "江河", "江南"], desc: "大河；特指长江。" },
-    { char: "住", pinyin: "zhù", words: ["住房", "住处", "居住"], desc: "长期居留。" },
-    { char: "没", pinyin: "méi", words: ["没有", "没人", "没用"], desc: "无；未（读轻声méi）。" },
-    { char: "以", pinyin: "yǐ", words: ["以后", "以前", "可以"], desc: "用；拿；表示时间、方位的界限。" },
+    // 课文5：影子（会写字）
+    { char: "在", pinyin: "zài", words: ["在家", "现在", "存在"], desc: "存留于某地点；正在（进行时）；表示强调。", type: "writing" },
+    { char: "那", pinyin: "nà", words: ["那里", "那边", "那么"], desc: "指示代词，指较远的人或事物。", type: "writing" },
+    { char: "着", pinyin: "zhe", words: ["看着", "听着", "笑着"], desc: "助词，表示动作持续或状态延续。", type: "writing" },
+    { char: "朋", pinyin: "péng", words: ["朋友", "亲朋", "故朋"], desc: "彼此有交情的人。", type: "writing" },
+    { char: "友", pinyin: "yǒu", words: ["友好", "友谊", "战友"], desc: "互相帮助、共同进步的人；亲近。", type: "writing" },
 
-    // --- 2. 我多想去看看 ---
-    { char: "想", pinyin: "xiǎng", words: ["想念", "想法", "想象"], desc: "心里计划或希望；思考。" },
-    { char: "告", pinyin: "gào", words: ["告诉", "告别", "广告"], desc: "说给人知道；宣布。" },
-    { char: "诉", pinyin: "sù", words: ["告诉", "诉说", "投诉"], desc: "说（苦处、请求等）。" },
-    { char: "京", pinyin: "jīng", words: ["北京", "京城", "京剧"], desc: "首都；特指北京。" },
-    { char: "安", pinyin: "ān", words: ["安全", "安静", "平安"], desc: "平静；没有危险。" },
-    { char: "门", pinyin: "mén", words: ["大门", "门口", "开门"], desc: "出入口装置；人家。" },
-    { char: "广", pinyin: "guǎng", words: ["广场", "广大", "广东"], desc: "宽阔；范围大。" },
-    { char: "非", pinyin: "fēi", words: ["非常", "是非", "非洲"], desc: "不是；不对。" },
-    { char: "常", pinyin: "cháng", words: ["经常", "平常", "常常"], desc: "时常；普通。" },
-    { char: "壮", pinyin: "zhuàng", words: ["壮大", "强壮", "壮丽"], desc: "强健；雄伟。" },
-    { char: "观", pinyin: "guān", words: ["观看", "观众", "壮观"], desc: "看；景象。" },
-    { char: "接", pinyin: "jiē", words: ["接着", "接送", "连接"], desc: "靠近；传递。" },
-    { char: "道", pinyin: "dào", words: ["道路", "知道", "道理"], desc: "路；方法；说。" },
-    { char: "路", pinyin: "lù", words: ["马路", "走路", "公路"], desc: "供通行的地面。" },
-    { char: "走", pinyin: "zǒu", words: ["走路", "走开", "行走"], desc: "脚移动前进。" },
-    { char: "北", pinyin: "běi", words: ["北方", "北京", "北斗"], desc: "方向，与‘南’相对。" },
-    { char: "新", pinyin: "xīn", words: ["新年", "新鲜", "新书"], desc: "刚出现的；不旧。" },
-    { char: "疆", pinyin: "jiāng", words: ["新疆", "边疆", "疆土"], desc: "地域边界；新疆简称。" },
-    // 会写字
-    { char: "会", pinyin: "huì", words: ["开会", "学会", "会议"], desc: "聚合；理解；擅长。" },
-    { char: "走", pinyin: "zǒu", words: ["走路", "走开", "行走"], desc: "脚移动前进。" },
-    { char: "北", pinyin: "běi", words: ["北方", "北京", "北斗"], desc: "方向，与‘南’相对。" },
-    { char: "京", pinyin: "jīng", words: ["北京", "京城", "京剧"], desc: "首都；特指北京。" },
-    { char: "门", pinyin: "mén", words: ["大门", "门口", "开门"], desc: "出入口装置；人家。" },
-    { char: "广", pinyin: "guǎng", words: ["广场", "广大", "广东"], desc: "宽阔；范围大。" },
+    // 课文6：比尾巴（会写字）
+    { char: "巴", pinyin: "bā", words: ["尾巴", "下巴", "巴士"], desc: "长条形柔软的东西末端；量词（用于‘尾巴’）。", type: "writing" },
+    { char: "谁", pinyin: "shuí", words: ["谁的", "是谁", "谁家"], desc: "疑问代词，指不确定的人。", type: "writing" },
+    { char: "长", pinyin: "cháng", words: ["很长", "长江", "长短"], desc: "两端距离大；时间久；长度。", type: "writing" },
+    { char: "短", pinyin: "duǎn", words: ["短处", "短发", "短小"], desc: "两端距离小；时间少；缺点。", type: "writing" },
+    { char: "把", pinyin: "bǎ", words: ["把手", "一把", "把握"], desc: "量词（用于有把手的工具）；握；控制。", type: "writing" },
 
-    // ==========================================
-    // 第三单元：课文
-    // ==========================================
+    // 课文7：青蛙写诗（会写字）
+    { char: "下", pinyin: "xià", words: ["下雨", "下面", "下来"], desc: "位置在低处；由高到低；次序靠后。", type: "writing" },
+    { char: "个", pinyin: "gè", words: ["一个", "个人", "个别"], desc: "通用量词；单独的。", type: "writing" },
+    { char: "们", pinyin: "men", words: ["我们", "你们", "他们"], desc: "代词后缀，表示复数。", type: "writing" },
+    { char: "伞", pinyin: "sǎn", words: ["雨伞", "降落伞", "阳伞"], desc: "遮蔽日光或雨雪的用具。", type: "writing" },
 
-    // --- 5. 小公鸡和小鸭子 ---
-    { char: "块", pinyin: "kuài", words: ["石块", "冰块", "一块"], desc: "成疙瘩或团状的东西。" },
-    { char: "捉", pinyin: "zhuō", words: ["捉住", "捉虫", "捕捉"], desc: "用手抓住。" },
-    { char: "急", pinyin: "jí", words: ["着急", "急忙", "急救"], desc: "心里着急，行动匆忙。" },
-    { char: "直", pinyin: "zhí", words: ["直线", "直接", "一直"], desc: "不弯曲；挺直。" },
-    { char: "河", pinyin: "hé", words: ["河水", "河边", "黄河"], desc: "天然水流。" },
-    { char: "行", pinyin: "xíng", words: ["行走", "行人", "银行"], desc: "走；可以（读xíng）。" },
-    { char: "死", pinyin: "sǐ", words: ["死亡", "死去", "死板"], desc: "生命结束；不活动。" },
-    { char: "信", pinyin: "xìn", words: ["相信", "信心", "书信"], desc: "诚实；消息；书信。" },
-    { char: "跟", pinyin: "gēn", words: ["跟从", "跟头", "脚跟"], desc: "在后面；随从。" },
-    { char: "忽", pinyin: "hū", words: ["忽然", "忽略", "忽视"], desc: "粗心；不注意。" },
-    { char: "喊", pinyin: "hǎn", words: ["喊叫", "喊话", "大喊"], desc: "大声叫。" },
-    { char: "身", pinyin: "shēn", words: ["身体", "身边", "全身"], desc: "人或动物的躯体。" },
-    // 会写字
-    { char: "他", pinyin: "tā", words: ["他们", "他人", "他日"], desc: "第三人称代词（男性）。" },
-    { char: "河", pinyin: "hé", words: ["河水", "河边", "黄河"], desc: "天然水流。" },
-    { char: "说", pinyin: "shuō", words: ["说话", "说明", "小说"], desc: "用话表达意思。" },
-    { char: "也", pinyin: "yě", words: ["也是", "也好", "也许"], desc: "副词，表示同样。" },
-    { char: "地", pinyin: "dì", words: ["土地", "地方", "大地"], desc: "地球表面；区域（读dì）。" },
-    { char: "听", pinyin: "tīng", words: ["听见", "听话", "听说"], desc: "用耳朵接受声音。" },
-    { char: "哥", pinyin: "gē", words: ["哥哥", "表哥", "大哥"], desc: "同父母（或只同父/母）年长的男子。" },
+    // 课文8：雨点儿（会写字）
+    { char: "问", pinyin: "wèn", words: ["问好", "问题", "问候"], desc: "向人打听；提出问题；责问。", type: "writing" },
+    { char: "有", pinyin: "yǒu", words: ["有水", "有人", "有力"], desc: "存在；所属；发生。", type: "writing" },
+    { char: "半", pinyin: "bàn", words: ["一半", "半天", "半空"], desc: "二分之一；不完全；中间。", type: "writing" },
+    { char: "从", pinyin: "cóng", words: ["从来", "从前", "从此"], desc: "自；由；跟随。", type: "writing" },
 
-    // --- 6. 树和喜鹊 ---
-    { char: "单", pinyin: "dān", words: ["单独", "单元", "简单"], desc: "一个；不复杂。" },
-    { char: "居", pinyin: "jū", words: ["居住", "邻居", "居然"], desc: "住；住所。" },
-    { char: "招", pinyin: "zhāo", words: ["招呼", "招生", "招手"], desc: "用手势叫人；引来。" },
-    { char: "呼", pinyin: "hū", words: ["呼叫", "呼吸", "欢呼"], desc: "喊；吐气。" },
-    { char: "静", pinyin: "jìng", words: ["安静", "静静", "冷静"], desc: "没有声音；平静。" },
-    { char: "乐", pinyin: "lè", words: ["快乐", "音乐", "乐园"], desc: "愉快；喜好（此处读lè）。" },
-    { char: "只", pinyin: "zhī", words: ["一只", "船只", "只身"], desc: "量词（动物等）；仅仅（读zhǐ）。" },
-    { char: "种", pinyin: "zhòng", words: ["种树", "种花", "种植"], desc: "播种（读zhòng）。" },
-    { char: "都", pinyin: "dōu", words: ["都是", "都要", "首都"], desc: "全（读dōu）；大城市（读dū）。" },
-    { char: "邻", pinyin: "lín", words: ["邻居", "邻国", "临近"], desc: "住处接近的人或国家。" },
-    // 会写字
-    { char: "单", pinyin: "dān", words: ["单独", "单元", "简单"], desc: "一个；不复杂。" },
-    { char: "居", pinyin: "jū", words: ["居住", "邻居", "居然"], desc: "住；住所。" },
-    { char: "招", pinyin: "zhāo", words: ["招呼", "招生", "招手"], desc: "用手势叫人；引来。" },
-    { char: "呼", pinyin: "hū", words: ["呼叫", "呼吸", "欢呼"], desc: "喊；吐气。" },
-    { char: "快", pinyin: "kuài", words: ["快乐", "快走", "飞快"], desc: "速度高；愉快。" },
-    { char: "乐", pinyin: "lè", words: ["快乐", "音乐", "乐园"], desc: "愉快；喜好。" },
+    // 课文9：明天要远足（会写字）
+    { char: "才", pinyin: "cái", words: ["刚才", "才能", "才华"], desc: "刚刚；仅仅；只有（这样）才……。", type: "writing" },
+    { char: "明", pinyin: "míng", words: ["明天", "明亮", "明白"], desc: "亮；清楚；公开；懂得。", type: "writing" },
+    { char: "同", pinyin: "tóng", words: ["同学", "同意", "相同"], desc: "一样；共同；和……一样。", type: "writing" },
+    { char: "学", pinyin: "xué", words: ["学习", "学生", "学问"], desc: "效法；知识；学校。", type: "writing" },
 
-    // --- 7. 怎么都快乐 ---
-    { char: "怎", pinyin: "zěn", words: ["怎么", "怎样", "怎会"], desc: "疑问代词，询问方式或原因。" },
-    { char: "独", pinyin: "dú", words: ["独自", "独立", "孤独"], desc: "单独；唯独。" },
-    { char: "跳", pinyin: "tiào", words: ["跳高", "跳绳", "跳跃"], desc: "脚离地向上或向前跃。" },
-    { char: "绳", pinyin: "shéng", words: ["绳子", "跳绳", "绳索"], desc: "用纤维拧成的长条。" },
-    { char: "讲", pinyin: "jiǎng", words: ["讲话", "讲故事", "讲解"], desc: "说；说明。" },
-    { char: "戏", pinyin: "xì", words: ["游戏", "戏曲", "唱戏"], desc: "玩耍；戏剧。" },
-    { char: "羽", pinyin: "yǔ", words: ["羽毛", "羽绒", "羽扇"], desc: "鸟的毛；翅膀。" },
-    { char: "球", pinyin: "qiú", words: ["皮球", "足球", "地球"], desc: "圆形物体；运动器材。" },
-    { char: "排", pinyin: "pái", words: ["排队", "排列", "一排"], desc: "依次摆开；量词。" },
-    { char: "篮", pinyin: "lán", words: ["篮球", "竹篮", "篮子"], desc: "竹篾编的容器。" },
-    { char: "连", pinyin: "lián", words: ["连接", "连忙", "连长"], desc: "相接；连续。" },
-    { char: "运", pinyin: "yùn", words: ["运动", "运气", "运输"], desc: "转动；搬运。" },
-    // 会写字
-    { char: "玩", pinyin: "wán", words: ["好玩", "玩耍", "玩具"], desc: "做游戏；戏弄。" },
-    { char: "很", pinyin: "hěn", words: ["很好", "很多", "很快"], desc: "程度高（副词）。" },
-    { char: "当", pinyin: "dāng", words: ["当然", "当时", "当心"], desc: "应当（读dāng）；担任。" },
-    { char: "音", pinyin: "yīn", words: ["音乐", "声音", "口音"], desc: "声波；消息。" },
-    { char: "讲", pinyin: "jiǎng", words: ["讲话", "讲故事", "讲解"], desc: "说；说明。" },
-    { char: "行", pinyin: "xíng", words: ["行走", "行人", "银行"], desc: "走；可以。" },
-    { char: "许", pinyin: "xǔ", words: ["许多", "也许", "许可"], desc: "应允；称赞；约数。" },
+    // 课文10：大还是小（会写字）
+    { char: "自", pinyin: "zì", words: ["自己", "自由", "自觉"], desc: "本人；自然；从……起。", type: "writing" },
+    { char: "己", pinyin: "jǐ", words: ["自己", "知己", "己见"], desc: "自身；天干第六位。", type: "writing" },
+    { char: "衣", pinyin: "yī", words: ["衣服", "上衣", "大衣"], desc: "穿在身上御寒、遮羞的物品。", type: "writing" },
+    { char: "服", pinyin: "fú", words: ["服装", "服从", "服务"], desc: "衣裳；信服；从事（工作）。", type: "writing" },
 
-    // ==========================================
-    // 第四单元：课文
-    // ==========================================
+    // 课文11：项链（会写字）
+    { char: "蓝", pinyin: "lán", words: ["蓝色", "蓝天", "蓝图"], desc: "像晴天天空的颜色；技术先进。", type: "writing" },
+    { char: "又", pinyin: "yòu", words: ["又大", "又高", "又快"], desc: "重复；更加；连词（表并列）。", type: "writing" },
+    { char: "笑", pinyin: "xiào", words: ["笑话", "微笑", "笑脸"], desc: "露出愉快表情；讥笑。", type: "writing" },
+    { char: "着", pinyin: "zhe", words: ["笑着", "看着", "听着"], desc: "助词，表示动作持续或状态延续。", type: "writing" },
 
-    // --- 8. 静夜思 ---
-    { char: "静", pinyin: "jìng", words: ["安静", "静静", "冷静"], desc: "没有声音；平静。" },
-    { char: "夜", pinyin: "yè", words: ["夜晚", "黑夜", "深夜"], desc: "天黑到天亮的时间。" },
-    { char: "思", pinyin: "sī", words: ["思念", "思考", "古诗"], desc: "想；想念。" },
-    { char: "床", pinyin: "chuáng", words: ["床铺", "上床", "河床"], desc: "睡觉用的家具。" },
-    { char: "光", pinyin: "guāng", words: ["光明", "阳光", "灯光"], desc: "亮；荣誉。" },
-    { char: "疑", pinyin: "yí", words: ["怀疑", "疑问", "疑心"], desc: "不相信；问题。" },
-    { char: "举", pinyin: "jǔ", words: ["举起", "举手", "举动"], desc: "向上托起；提出。" },
-    { char: "望", pinyin: "wàng", words: ["望着", "希望", "看望"], desc: "看；盼望。" },
-    { char: "低", pinyin: "dī", words: ["低头", "低处", "高低"], desc: "从上到下的距离小。" },
-    { char: "故", pinyin: "gù", words: ["故乡", "故事", "故意"], desc: "原来的；所以。" },
-    { char: "乡", pinyin: "xiāng", words: ["家乡", "乡村", "老乡"], desc: "出生地；农村。" },
-    // 会写字
-    { char: "思", pinyin: "sī", words: ["思念", "思考", "古诗"], desc: "想；想念。" },
-    { char: "床", pinyin: "chuáng", words: ["床铺", "上床", "河床"], desc: "睡觉用的家具。" },
-    { char: "前", pinyin: "qián", words: ["前面", "前进", "以前"], desc: "位置在先的；时间在先的。" },
-    { char: "光", pinyin: "guāng", words: ["光明", "阳光", "灯光"], desc: "亮；荣誉。" },
-    { char: "低", pinyin: "dī", words: ["低头", "低处", "高低"], desc: "从上到下的距离小。" },
-    { char: "故", pinyin: "gù", words: ["故乡", "故事", "故意"], desc: "原来的；所以。" },
-    { char: "乡", pinyin: "xiāng", words: ["家乡", "乡村", "老乡"], desc: "出生地；农村。" },
+    // 课文12：雪地里的小画家（会写字）
+    { char: "竹", pinyin: "zhú", words: ["竹子", "竹叶", "竹林"], desc: "常绿乔木，茎中空有节；竹简。", type: "writing" },
+    { char: "牙", pinyin: "yá", words: ["牙齿", "牙刷", "牙疼"], desc: "咀嚼和发音的器官；形状像牙的东西。", type: "writing" },
+    { char: "马", pinyin: "mǎ", words: ["马上", "马车", "马路"], desc: "哺乳动物，善跑；姓氏；古代军事单位。", type: "writing" },
+    { char: "用", pinyin: "yòng", words: ["有用", "用力", "作用"], desc: "使用；需要；功能。", type: "writing" },
 
-    // --- 9. 夜色 ---
-    { char: "色", pinyin: "sè", words: ["颜色", "夜色", "彩色"], desc: "由光产生的视觉印象。" },
-    { char: "外", pinyin: "wài", words: ["外面", "外国", "窗外"], desc: "与‘内’‘里’相对。" },
-    { char: "看", pinyin: "kàn", words: ["看见", "看书", "看护"], desc: "视线接触人或物（读kàn）。" },
-    { char: "爸", pinyin: "bà", words: ["爸爸", "老爸", "爸妈"], desc: "父亲。" },
-    { char: "晚", pinyin: "wǎn", words: ["晚上", "晚会", "傍晚"], desc: "日落到深夜的时间。" },
-    { char: "笑", pinyin: "xiào", words: ["微笑", "笑话", "欢笑"], desc: "露出愉快表情。" },
-    { char: "再", pinyin: "zài", words: ["再见", "再次", "再来"], desc: "表示又一次。" },
-    // 会写字
-    { char: "色", pinyin: "sè", words: ["颜色", "夜色", "彩色"], desc: "由光产生的视觉印象。" },
-    { char: "外", pinyin: "wài", words: ["外面", "外国", "窗外"], desc: "与‘内’‘里’相对。" },
-    { char: "看", pinyin: "kàn", words: ["看见", "看书", "看护"], desc: "视线接触人或物。" },
-    { char: "爸", pinyin: "bà", words: ["爸爸", "老爸", "爸妈"], desc: "父亲。" },
-    { char: "晚", pinyin: "wǎn", words: ["晚上", "晚会", "傍晚"], desc: "日落到深夜的时间。" },
-    { char: "笑", pinyin: "xiào", words: ["微笑", "笑话", "欢笑"], desc: "露出愉快表情。" },
-    { char: "再", pinyin: "zài", words: ["再见", "再次", "再来"], desc: "表示又一次。" },
+    // 课文13：乌鸦喝水（会写字）
+    { char: "鸟", pinyin: "niǎo", words: ["小鸟", "鸟儿", "鸟巢"], desc: "有羽毛、会飞的卵生脊椎动物。", type: "writing" },
+    { char: "石", pinyin: "shí", words: ["石头", "石油", "石子"], desc: "构成地壳的坚硬物质；量词（如‘一石米’）。", type: "writing" },
+    { char: "多", pinyin: "duō", words: ["多少", "多人", "很多"], desc: "数量大；超过原有数量。", type: "writing" },
+    { char: "出", pinyin: "chū", words: ["出来", "出去", "出现"], desc: "从里面到外面；显露；产生。", type: "writing" },
 
-    // --- 10. 端午粽 ---
-    { char: "端", pinyin: "duān", words: ["端午", "端水", "端正"], desc: "平举着拿；开头。" },
-    { char: "午", pinyin: "wǔ", words: ["中午", "午时", "端午"], desc: "白天十二点左右。" },
-    { char: "节", pinyin: "jié", words: ["节日", "春节", "节约"], desc: "纪念日；节省。" },
-    { char: "叶", pinyin: "yè", words: ["叶子", "树叶", "叶片"], desc: "植物的营养器官。" },
-    { char: "米", pinyin: "mǐ", words: ["大米", "小米", "米饭"], desc: "谷类去壳后的子实。" },
-    { char: "豆", pinyin: "dòu", words: ["豆子", "红豆", "豆腐"], desc: "豆类植物的种子。" },
-    { char: "沙", pinyin: "shā", words: ["沙子", "沙漠", "风沙"], desc: "细小的石粒。" },
-    { char: "肉", pinyin: "ròu", words: ["猪肉", "牛肉", "肉食"], desc: "动物的肌肉组织。" },
-    { char: "带", pinyin: "dài", words: ["带领", "皮带", "带来"], desc: "携带；区域。" },
-    { char: "知", pinyin: "zhī", words: ["知道", "知识", "通知"], desc: "晓得；了解。" },
-    { char: "据", pinyin: "jù", words: ["据说", "证据", "数据"], desc: "依靠；凭证。" },
-    { char: "念", pinyin: "niàn", words: ["想念", "念书", "纪念"], desc: "惦记；读。" },
-    // 会写字
-    { char: "午", pinyin: "wǔ", words: ["中午", "午时", "端午"], desc: "白天十二点左右。" },
-    { char: "节", pinyin: "jié", words: ["节日", "春节", "节约"], desc: "纪念日；节省。" },
-    { char: "叶", pinyin: "yè", words: ["叶子", "树叶", "叶片"], desc: "植物的营养器官。" },
-    { char: "米", pinyin: "mǐ", words: ["大米", "小米", "米饭"], desc: "谷类去壳后的子实。" },
-    { char: "真", pinyin: "zhēn", words: ["真正", "真心", "认真"], desc: "与客观事实相符；的确。" },
-    { char: "分", pinyin: "fēn", words: ["分开", "分钟", "十分"], desc: "区划开（读fēn）；成分。" },
-    { char: "豆", pinyin: "dòu", words: ["豆子", "红豆", "豆腐"], desc: "豆类植物的种子。" },
+    // 课文14：小蜗牛（会写字）
+    { char: "爬", pinyin: "pá", words: ["爬山", "爬行", "爬虫"], desc: "手足并用向前移动；攀登。", type: "writing" },
+    { char: "遍", pinyin: "biàn", words: ["一遍", "几遍", "遍地"], desc: "量词（次）；普遍。", type: "writing" },
+    { char: "变", pinyin: "biàn", words: ["变化", "变成", "变换"], desc: "改变；情况不同。", type: "writing" },
+    { char: "全", pinyin: "quán", words: ["全部", "全家", "安全"], desc: "完整；都；完备。", type: "writing" },
 
-    // ==========================================
-    // 第五单元：识字（修正补充版）
-    // ==========================================
+    // 语文园地一：书写提示（基础字）
+    { char: "白", pinyin: "bái", words: ["白色", "白天", "明白"], desc: "像霜雪的颜色；清楚；空；陈述。", type: "writing" },
+    { char: "的", pinyin: "de", words: ["我的", "你的", "红的"], desc: "结构助词，连接定语与中心语。", type: "writing" },
+    { char: "又", pinyin: "yòu", words: ["又大", "又高", "又快"], desc: "重复；更加；连词（表并列）。", type: "writing" },
+    { char: "和", pinyin: "hé", words: ["和好", "和平", "和气"], desc: "平和；连词（表并列）；介词（表伴随）。", type: "writing" },
+    { char: "心", pinyin: "xīn", words: ["心里", "开心", "小心"], desc: "心脏；思想感情；中心。", type: "writing" },
 
-    // --- 5. 动物儿歌 ---
-    { char: "蜻", pinyin: "qīng", words: ["蜻蜓", "蜻蜓点水"], desc: "昆虫，身体细长，捕食蚊子。" },
-    { char: "蜓", pinyin: "tíng", words: ["蜻蜓"], desc: "与'蜻'组成'蜻蜓'。" },
-    { char: "迷", pinyin: "mí", words: ["迷路", "迷人", "着迷"], desc: "分辨不清；沉醉。" },
-    { char: "藏", pinyin: "cáng", words: ["躲藏", "隐藏", "收藏"], desc: "隐蔽起来不让人发现。" },
-    { char: "造", pinyin: "zào", words: ["制造", "造句", "创造"], desc: "制作；建立。" },
-    { char: "蚂", pinyin: "mǎ", words: ["蚂蚁", "蚂蚱"], desc: "与'蚁'组成'蚂蚁'。" },
-    { char: "蚁", pinyin: "yǐ", words: ["蚂蚁", "工蚁"], desc: "昆虫，群居，筑巢。" },
-    { char: "食", pinyin: "shí", words: ["食物", "吃饭", "粮食"], desc: "吃的东西。" },
-    { char: "粮", pinyin: "liáng", words: ["粮食", "粮仓", "干粮"], desc: "谷类食物的总称。" },
-    { char: "蜘", pinyin: "zhī", words: ["蜘蛛"], desc: "与'蛛'组成'蜘蛛'。" },
-    { char: "蛛", pinyin: "zhū", words: ["蜘蛛", "蛛网"], desc: "节肢动物，结网捕虫。" },
-    { char: "网", pinyin: "wǎng", words: ["渔网", "上网", "蜘蛛网"], desc: "用绳线结成的捕鱼捉鸟工具。" },
+    // 语文园地二：书写提示（常用字）
+    { char: "学", pinyin: "xué", words: ["学习", "学生", "学问"], desc: "效法；知识；学校。", type: "writing" },
+    { char: "自", pinyin: "zì", words: ["自己", "自由", "自觉"], desc: "本人；自然；从……起。", type: "writing" },
+    { char: "己", pinyin: "jǐ", words: ["自己", "知己", "己见"], desc: "自身；天干第六位。", type: "writing" },
+    { char: "衣", pinyin: "yī", words: ["衣服", "上衣", "大衣"], desc: "穿在身上御寒、遮羞的物品。", type: "writing" },
 
-    // --- 6. 古对今（补充遗漏课）---
-    { char: "凉", pinyin: "liáng", words: ["凉快", "凉水", "清凉"], desc: "温度低；不热。" }, // 【关键补充】原遗漏字
-    { char: "晨", pinyin: "chén", words: ["早晨", "清晨", "晨练"], desc: "日出前后的时间。" },
-    { char: "霞", pinyin: "xiá", words: ["彩霞", "朝霞", "晚霞"], desc: "日出日落时天空的彩色云。" },
-    { char: "杨", pinyin: "yáng", words: ["杨树", "白杨", "姓杨"], desc: "杨树；姓氏。" },
-    { char: "细", pinyin: "xì", words: ["细心", "细小", "仔细"], desc: "颗粒小；周密。" },
-    { char: "夕", pinyin: "xī", words: ["夕阳", "除夕", "前夕"], desc: "傍晚；日落的时候。" },
-    { char: "语", pinyin: "yǔ", words: ["语文", "语言", "成语"], desc: "话；文句。" },
+    // 语文园地三：书写提示（生活字）
+    { char: "是", pinyin: "shì", words: ["是的", "不是", "是非"], desc: "判断动词（等于、属于）；这、此。", type: "writing" },
+    { char: "在", pinyin: "zài", words: ["在家", "现在", "存在"], desc: "存留于某地点；正在（进行时）；表示强调。", type: "writing" },
+    { char: "那", pinyin: "nà", words: ["那里", "那边", "那么"], desc: "指示代词，指较远的人或事物。", type: "writing" },
+    { char: "着", pinyin: "zhe", words: ["看着", "听着", "笑着"], desc: "助词，表示动作持续或状态延续。", type: "writing" },
 
-    // --- 7. 操场上 ---
-    { char: "操", pinyin: "cāo", words: ["操场", "体操", "操作"], desc: "训练；把持。" },
-    { char: "场", pinyin: "chǎng", words: ["操场", "场地", "广场"], desc: "平坦的空地；处所。" },
-    { char: "拔", pinyin: "bá", words: ["拔河", "拔草", "选拔"], desc: "抽，拉出。" },
-    { char: "拍", pinyin: "pāi", words: ["拍手", "拍球", "拍照"], desc: "用手掌打；摄影。" },
-    { char: "跑", pinyin: "pǎo", words: ["跑步", "赛跑", "逃跑"], desc: "奔，两脚交替迅速前进。" },
-    { char: "踢", pinyin: "tī", words: ["踢球", "踢脚", "踢毽子"], desc: "用脚撞击。" },
-    { char: "铃", pinyin: "líng", words: ["铃声", "门铃", "铃铛"], desc: "金属制成的发声器。" }, // 【修正】仅保留1次，删除重复项
-    { char: "热", pinyin: "rè", words: ["热水", "热情", "热闹"], desc: "温度高；情意深。" },
-    { char: "闹", pinyin: "nào", words: ["热闹", "吵闹", "闹钟"], desc: "喧哗；发生（疾病等）。" },
-    { char: "锻", pinyin: "duàn", words: ["锻炼", "锻造"], desc: "锤炼金属；磨练。" },
-    { char: "炼", pinyin: "liàn", words: ["锻炼", "炼钢", "磨炼"], desc: "用火烧制；磨练。" },
-    { char: "体", pinyin: "tǐ", words: ["体育", "身体", "体会"], desc: "人或动物的全身；事物的本身。" },
-    { char: "响", pinyin: "xiǎng", words: ["响声", "响亮", "影响"], desc: "声音；发出声音。" },
-    { char: "课", pinyin: "kè", words: ["上课", "课文", "课堂"], desc: "教学上的一个阶段。" },
-    { char: "真", pinyin: "zhēn", words: ["真正", "认真", "天真"], desc: "与客观事实相符合。" },
+    // 语文园地四：书写提示（古诗字）
+    { char: "风", pinyin: "fēng", words: ["大风", "春风", "风扇"], desc: "空气流动形成的自然现象。", type: "writing" },
+    { char: "雨", pinyin: "yǔ", words: ["下雨", "雨水", "雨伞"], desc: "从云中降落到地面的水滴。", type: "writing" },
+    { char: "花", pinyin: "huā", words: ["花朵", "开花", "花生"], desc: "植物的繁殖器官；美丽的事物；用掉（钱）。", type: "writing" },
 
-    // --- 8. 人之初 ---
-    { char: "之", pinyin: "zhī", words: ["之前", "之后", "总之"], desc: "助词，相当于'的'；往。" },
-    { char: "初", pinyin: "chū", words: ["初中", "初步", "起初"], desc: "开始；第一个。" },
-    { char: "性", pinyin: "xìng", words: ["性格", "性别", "天性"], desc: "人或事物本身具有的能力。" },
-    { char: "善", pinyin: "shàn", words: ["善良", "善心", "友善"], desc: "心地仁爱，品质淳厚。" },
-    { char: "习", pinyin: "xí", words: ["学习", "习惯", "练习"], desc: "学过后再温熟；长期重复的行为。" },
-    { char: "教", pinyin: "jiào", words: ["教师", "教室", "教育"], desc: "传授知识；使警醒。" },
-    { char: "迁", pinyin: "qiān", words: ["迁移", "迁居", "搬家"], desc: "变换地方；改变。" },
-    { char: "贵", pinyin: "guì", words: ["贵重", "宝贵", "贵族"], desc: "价格高；值得珍视。" },
-    { char: "专", pinyin: "zhuān", words: ["专心", "专门", "专家"], desc: "单纯；集中在一件事上。" },
-    { char: "幼", pinyin: "yòu", words: ["幼儿", "幼小", "幼年"], desc: "年纪小；未长成。" },
-    { char: "玉", pinyin: "yù", words: ["玉石", "玉米", "宝玉"], desc: "质细而坚硬的美石。" },
-    { char: "器", pinyin: "qì", words: ["机器", "器具", "大器"], desc: "用具；才能。" },
-    { char: "义", pinyin: "yì", words: ["意义", "正义", "义气"], desc: "公正合宜的道理；情谊。" },
-    { char: "相", pinyin: "xiāng", words: ["互相", "相同", "相信"], desc: "交互；彼此。" },
-    { char: "近", pinyin: "jìn", words: ["近处", "接近", "亲近"], desc: "空间或时间距离短。" },
-    { char: "远", pinyin: "yuǎn", words: ["远方", "远近", "遥远"], desc: "距离长；长久。" },
-    { char: "苟", pinyin: "gǒu", words: ["苟且", "不苟"], desc: "假如；暂且。" }, // 【关键补充】《人之初》"苟不教"生字
+    // 语文园地五：书写提示（自然字）
+    { char: "云", pinyin: "yún", words: ["白云", "云朵", "云彩"], desc: "空气中悬浮的水滴或冰晶组成的可见集合体。", type: "writing" },
+    { char: "雪", pinyin: "xuě", words: ["雪花", "下雪", "雪人"], desc: "空中降落的白色结晶状水汽凝华物。", type: "writing" },
 
-    // ==========================================
-    // 第六至八单元（已全局去重，仅保留首次出现位置）
-    // ==========================================
-    // （注：以下内容严格按教材顺序排列，已删除所有重复字项）
-    // --- 12. 古诗二首 ---
-    { char: "首", pinyin: "shǒu", words: ["一首", "首先", "回首"], desc: "量词（用于诗歌等）；头。" },
-    { char: "踪", pinyin: "zōng", words: ["踪迹", "跟踪", "失踪"], desc: "脚印；痕迹。" },
-    { char: "迹", pinyin: "jì", words: ["足迹", "事迹", "古迹"], desc: "留下的印子；前人留下的事物。" },
-    { char: "浮", pinyin: "fú", words: ["浮萍", "漂浮", "浮出"], desc: "停留在液体表面不下沉。" },
-    { char: "萍", pinyin: "píng", words: ["浮萍", "萍水相逢"], desc: "浮萍，水生植物。" },
-    { char: "泉", pinyin: "quán", words: ["泉水", "温泉", "源泉"], desc: "从地下流出的水。" },
-    { char: "流", pinyin: "liú", words: ["流水", "河流", "流行"], desc: "液体移动；传播。" },
-    { char: "爱", pinyin: "ài", words: ["爱心", "爱护", "爱好"], desc: "对人或事物有很深的感情。" },
-    { char: "柔", pinyin: "róu", words: ["温柔", "柔软", "柔美"], desc: "软；温和。" },
-    { char: "荷", pinyin: "hé", words: ["荷花", "荷叶", "负荷"], desc: "荷花；负担。" },
-    { char: "露", pinyin: "lù", words: ["露水", "露珠", "暴露"], desc: "靠近地面的水蒸气凝结成的小水珠。" },
-    { char: "角", pinyin: "jiǎo", words: ["角落", "角度", "牛角"], desc: "牛、羊等头上长出的坚硬东西；形状像角的。" },
-    { char: "珠", pinyin: "zhū", words: ["珍珠", "水珠", "眼珠"], desc: "珍珠；像珠子的东西。" },
-    { char: "摇", pinyin: "yáo", words: ["摇动", "摇头", "摇篮"], desc: "摆动；晃动。" },
-    { char: "展", pinyin: "zhǎn", words: ["展开", "展览", "展现"], desc: "张开；陈列。" },
-    { char: "透", pinyin: "tòu", words: ["透明", "透亮", "透气"], desc: "穿透；显露。" },
-    { char: "翅", pinyin: "chì", words: ["翅膀", "鸡翅", "展翅"], desc: "昆虫、鸟的飞行器官。" },
-    { char: "膀", pinyin: "bǎng", words: ["翅膀", "臂膀", "肩膀"], desc: "鸟类飞行器官的一部分；肩膀。" },
-    { char: "唱", pinyin: "chàng", words: ["唱歌", "唱戏", "歌唱"], desc: "依照乐律发声。" },
-    { char: "朵", pinyin: "duǒ", words: ["花朵", "一朵", "云朵"], desc: "花朵；量词（用于花、云等）。" },
+    // 语文园地六：书写提示（量词字）
+    { char: "群", pinyin: "qún", words: ["一群", "羊群", "群众"], desc: "聚在一起的同类人或动物；集体。", type: "writing" },
+    { char: "只", pinyin: "zhī", words: ["一只", "只要", "只有"], desc: "量词（用于飞禽、走兽、某些小东西）；仅。", type: "writing" },
+    { char: "条", pinyin: "tiáo", words: ["一条", "条件", "条件"], desc: "量词（用于长条形物、细长物）；枝条。", type: "writing" },
 
-    // --- 13. 荷叶圆圆 ---
-    { char: "晶", pinyin: "jīng", words: ["水晶", "晶莹", "亮晶晶"], desc: "光亮透明的样子。" },
-    { char: "放", pinyin: "fàng", words: ["放学", "放下", "放心"], desc: "解脱约束；搁置。" },
-    { char: "亮", pinyin: "liàng", words: ["明亮", "亮光", "天亮"], desc: "光线强；发光。" },
-    { char: "台", pinyin: "tái", words: ["讲台", "台风", "台阶"], desc: "高出地面便于眺望的建筑物；器物的底座。" },
-    { char: "鱼", pinyin: "yú", words: ["小鱼", "鱼儿", "钓鱼"], desc: "脊椎动物，生活在水中，用鳃呼吸。" },
+    // 语文园地七：书写提示（工具字）
+    { char: "文", pinyin: "wén", words: ["文字", "文化", "文明"], desc: "记录语言的符号；礼乐制度；温和。", type: "writing" },
+    { char: "具", pinyin: "jù", words: ["工具", "具体", "家具"], desc: "器具；具有；备有。", type: "writing" },
+    { char: "尺", pinyin: "chǐ", words: ["尺子", "尺寸", "尺幅"], desc: "长度单位（一尺≈33.3厘米）；量具。", type: "writing" },
 
-    // --- 14. 要下雨了 ---
-    { char: "坡", pinyin: "pō", words: ["山坡", "上坡", "坡度"], desc: "倾斜的地面。" },
-    { char: "沉", pinyin: "chén", words: ["下沉", "沉没", "沉思"], desc: "没入水中；深。" },
-    { char: "伸", pinyin: "shēn", words: ["伸手", "伸展", "伸直"], desc: "舒展开；延长。" },
-    { char: "潮", pinyin: "cháo", words: ["潮湿", "潮水", "热潮"], desc: "含水分多；海水定时涨落。" },
-    { char: "湿", pinyin: "shī", words: ["湿气", "湿地", "湿润"], desc: "含水分多。" },
-    { char: "呢", pinyin: "ne", words: ["你呢", "什么呀"], desc: "助词，表示疑问或确定语气。" },
-    { char: "空", pinyin: "kōng", words: ["天空", "空气", "空地"], desc: "没有东西；天空。" },
-    { char: "闷", pinyin: "mèn", words: ["闷热", "闷闷不乐", "闷雷"], desc: "气压低或空气不流通而引起的不舒畅感。" },
-    { char: "消", pinyin: "xiāo", words: ["消息", "消失", "消化"], desc: "散失；除去。" },
-    { char: "息", pinyin: "xī", words: ["休息", "消息", "叹息"], desc: "呼吸时进出的气；停止。" },
-    { char: "搬", pinyin: "bān", words: ["搬家", "搬运", "搬动"], desc: "移动物体的位置。" },
-    { char: "雷", pinyin: "léi", words: ["雷电", "雷雨", "打雷"], desc: "云层放电时发出的巨响。" },
-    { char: "电", pinyin: "diàn", words: ["电话", "电视", "闪电"], desc: "闪电；电流。" },
-    { char: "阵", pinyin: "zhèn", words: ["一阵", "阵地", "阵雨"], desc: "量词（用于事情或动作）；军队作战时的布置。" },
-    { char: "哗", pinyin: "huā", words: ["哗啦", "哗哗"], desc: "拟声词，形容撞击、倒塌等声音。" },
-    { char: "边", pinyin: "biān", words: ["旁边", "河边", "天边"], desc: "物体的周围部分；方向。" },
-
-    // --- 15. 文具的家 ---
-    { char: "文", pinyin: "wén", words: ["文化", "文字", "课文"], desc: "文字；文章。" },
-    { char: "具", pinyin: "jù", words: ["文具", "工具", "具体"], desc: "用具；器具。" },
-    { char: "次", pinyin: "cì", words: ["一次", "次数", "次品"], desc: "第二；质量较差的。" },
-    { char: "找", pinyin: "zhǎo", words: ["找到", "寻找", "找人"], desc: "寻求；觅取。" },
-    { char: "平", pinyin: "píng", words: ["平安", "平时", "平面"], desc: "不倾斜；普通。" },
-    { char: "办", pinyin: "bàn", words: ["办法", "办公", "办事"], desc: "处理；办理。" },
-    { char: "包", pinyin: "bāo", words: ["书包", "包子", "包围"], desc: "用纸、布等裹东西；包裹。" },
-    { char: "尺", pinyin: "chǐ", words: ["尺子", "尺寸", "直尺"], desc: "长度单位；量长短的器具。" },
-    { char: "作", pinyin: "zuò", words: ["作业", "工作", "作文"], desc: "劳作；写作。" },
-    { char: "业", pinyin: "yè", words: ["作业", "事业", "工业"], desc: "行业；学业。" },
-    { char: "本", pinyin: "běn", words: ["书本", "本来", "本子"], desc: "草木的根；基础的东西。" },
-    { char: "笔", pinyin: "bǐ", words: ["毛笔", "铅笔", "笔记"], desc: "写字画图的工具。" },
-    { char: "刀", pinyin: "dāo", words: ["小刀", "刀子", "菜刀"], desc: "切、割、削的工具。" },
-    { char: "早", pinyin: "zǎo", words: ["早上", "早日", "早餐"], desc: "太阳出来以前的时间。" },
-    { char: "校", pinyin: "xiào", words: ["学校", "校长", "校服"], desc: "教育机构；军衔名。" },
-
-    // --- 16. 一分钟 ---
-    { char: "钟", pinyin: "zhōng", words: ["时钟", "钟表", "钟声"], desc: "计时器具；响声。" },
-    { char: "元", pinyin: "yuán", words: ["元旦", "元月", "一元"], desc: "开始；货币单位。" },
-    { char: "迟", pinyin: "chí", words: ["迟到", "迟早", "迟缓"], desc: "慢；晚。" },
-    { char: "洗", pinyin: "xǐ", words: ["洗手", "洗澡", "清洗"], desc: "用水去掉污垢。" },
-    { char: "共", pinyin: "gòng", words: ["共同", "总共", "公共"], desc: "一起；总计。" },
-    { char: "已", pinyin: "yǐ", words: ["已经", "早已", "不已"], desc: "副词，表示过去。" },
-    { char: "经", pinyin: "jīng", words: ["已经", "经常", "经过"], desc: "织布机上的纵线；经历。" },
-    { char: "坐", pinyin: "zuò", words: ["坐下", "坐车", "座位"], desc: "臀部着物支持身体。" },
-    { char: "怀", pinyin: "huái", words: ["怀抱", "怀念", "胸怀"], desc: "胸前；心里存有。" },
-    { char: "表", pinyin: "biǎo", words: ["表示", "手表", "外表"], desc: "显示；计时器具。" },
-    { char: "汽", pinyin: "qì", words: ["汽车", "汽水", "蒸汽"], desc: "液体或固体受热而变成的气体。" },
-    { char: "决", pinyin: "jué", words: ["决定", "决心", "决赛"], desc: "拿定主意；一定。" },
-    { char: "定", pinyin: "dìng", words: ["决定", "一定", "安定"], desc: "不动；使平静。" },
-
-    // --- 17. 动物王国开大会 ---
-    { char: "物", pinyin: "wù", words: ["动物", "植物", "物体"], desc: "东西；生物。" },
-    { char: "虎", pinyin: "hǔ", words: ["老虎", "虎口", "虎牙"], desc: "哺乳动物，大型猫科。" },
-    { char: "熊", pinyin: "xióng", words: ["熊猫", "黑熊", "熊掌"], desc: "哺乳动物，体大，掌粗。" },
-    { char: "通", pinyin: "tōng", words: ["通知", "通过", "交通"], desc: "没有阻碍；传达。" },
-    { char: "注", pinyin: "zhù", words: ["注意", "注视", "注册"], desc: "灌入；集中（精力）。" },
-    { char: "意", pinyin: "yì", words: ["注意", "意思", "意义"], desc: "心思；愿望。" },
-    { char: "遍", pinyin: "biàn", words: ["一遍", "普遍", "走遍"], desc: "全面；量词（动作次数）。" },
-    { char: "百", pinyin: "bǎi", words: ["一百", "百姓", "百合"], desc: "数目，十个十。" },
-    { char: "舌", pinyin: "shé", words: ["舌头", "舌尖", "口舌"], desc: "口腔中能活动的肌肉器官。" },
-    { char: "点", pinyin: "diǎn", words: ["一点", "点头", "雨点"], desc: "小滴；表示少量。" },
-    { char: "鬼", pinyin: "guǐ", words: ["鬼怪", "鬼脸", "小鬼"], desc: "迷信中人死后的灵魂；不可告人的打算。" },
-    { char: "脸", pinyin: "liǎn", words: ["脸蛋", "笑脸", "洗脸"], desc: "面部；表情。" },
-    { char: "准", pinyin: "zhǔn", words: ["准备", "准时", "准确"], desc: "允许；标准。" },
-    { char: "第", pinyin: "dì", words: ["第一", "第二", "第几"], desc: "次序；表示次序的词头。" },
-    { char: "要", pinyin: "yào", words: ["要求", "需要", "重要"], desc: "索取；重要。" },
-
-    // --- 18. 小猴子下山 ---
-    { char: "猴", pinyin: "hóu", words: ["猴子", "猴王", "猴年"], desc: "哺乳动物，似人，善攀援。" },
-    { char: "结", pinyin: "jiē", words: ["结果", "结实", "结巴"], desc: "植物长出果实；牢固。" },
-    { char: "瓜", pinyin: "guā", words: ["西瓜", "瓜子", "南瓜"], desc: "葫芦科植物的果实。" },
-    { char: "进", pinyin: "jìn", words: ["前进", "进口", "进步"], desc: "向前移动；收入。" },
-    { char: "扛", pinyin: "káng", words: ["扛起", "扛着", "扛活"], desc: "用肩膀承担物体。" },
-    { char: "往", pinyin: "wǎng", words: ["往来", "往日", "往前"], desc: "去；向。" },
-    { char: "回", pinyin: "huí", words: ["回家", "回来", "回答"], desc: "转一圈回到原处；答复。" },
-    { char: "数", pinyin: "shǔ", words: ["数数", "数落", "数九"], desc: "计算数目。" },
-    { char: "满", pinyin: "mǎn", words: ["满意", "满足", "满分"], desc: "全部充实；骄傲。" },
-    { char: "摘", pinyin: "zhāi", words: ["摘花", "采摘", "摘要"], desc: "取下；选取要点。" },
-    { char: "捧", pinyin: "pěng", words: ["捧着", "捧场", "吹捧"], desc: "用双手托；奉承。" },
-    { char: "追", pinyin: "zhuī", words: ["追赶", "追求", "追击"], desc: "赶；寻求。" },
-    { char: "蹦", pinyin: "bèng", words: ["蹦跳", "蹦床", "蹦极"], desc: "跳；弹起。" },
-    { char: "抱", pinyin: "bào", words: ["抱着", "拥抱", "抱怨"], desc: "用手臂围住；心里存着（想法）。" },
-    { char: "扔", pinyin: "rēng", words: ["扔掉", "扔球", "扔垃圾"], desc: "挥动手臂使物体离开手。" },
-
-    // --- 19. 棉花姑娘 ---
-    { char: "棉", pinyin: "mián", words: ["棉花", "棉衣", "棉被"], desc: "草本植物，种子纤维可纺织。" },
-    { char: "娘", pinyin: "niáng", words: ["姑娘", "大娘", "娘家"], desc: "少女；母亲。" },
-    { char: "治", pinyin: "zhì", words: ["治病", "治疗", "治安"], desc: "医疗；管理。" },
-    { char: "燕", pinyin: "yàn", words: ["燕子", "燕窝", "燕麦"], desc: "候鸟，捕食昆虫。" },
-    { char: "别", pinyin: "bié", words: ["别人", "分别", "告别"], desc: "另外的；分离。" },
-    { char: "干", pinyin: "gàn", words: ["干活", "干部", "树干"], desc: "事物的主体；做。" },
-    { char: "然", pinyin: "rán", words: ["然后", "忽然", "自然"], desc: "对；如此。" },
-    { char: "奇", pinyin: "qí", words: ["奇怪", "奇迹", "好奇"], desc: "罕见的；出人意料的。" },
-    { char: "颗", pinyin: "kē", words: ["一颗", "颗粒", "颗子"], desc: "量词（用于小而圆的东西）。" },
-    { char: "瓢", pinyin: "piáo", words: ["水瓢", "瓢虫", "瓢泼"], desc: "用葫芦剖开做成的舀水器具。" },
-    { char: "碧", pinyin: "bì", words: ["碧绿", "碧玉", "碧空"], desc: "青绿色。" },
-    { char: "吐", pinyin: "tǔ", words: ["吐出", "吐痰", "吞吐"], desc: "使东西从口里出来。" },
-    { char: "啦", pinyin: "la", words: ["好啦", "走啦", "来啦"], desc: "语气词，表示事态变化或完成。" },
-    { char: "墙", pinyin: "qiáng", words: ["墙壁", "城墙", "墙角"], desc: "建筑物的竖立部分，起隔断作用。" },
-    { char: "断", pinyin: "duàn", words: ["断开", "判断", "断定"], desc: "分成两段或几段；判断。" },
-    { char: "壁", pinyin: "bì", words: ["墙壁", "壁虎", "绝壁"], desc: "墙；陡峭的山崖。" },
-    { char: "蚊", pinyin: "wén", words: ["蚊子", "蚊香", "蚊帐"], desc: "昆虫，吸人畜血液。" },
-    { char: "咬", pinyin: "yǎo", words: ["咬人", "咬牙", "咬合"], desc: "上下牙对着用力夹住或弄碎东西。" },
-    { char: "转", pinyin: "zhuǎn", words: ["转身", "转圈", "转动"], desc: "改换方向、位置。" },
-    { char: "拨", pinyin: "bō", words: ["拨开", "拨打电话", "拨动"], desc: "手脚或棍棒等横着用力，使东西移动。" },
-    { char: "赶", pinyin: "gǎn", words: ["赶走", "赶快", "追赶"], desc: "追；加快行动。" },
-    { char: "起", pinyin: "qǐ", words: ["起来", "起床", "起立"], desc: "由坐卧趴等而站立；开始。" },
-
-    // --- 20. 咕咚 ---
-    { char: "咕", pinyin: "gū", words: ["咕咚", "咕噜", "咕咕"], desc: "拟声词，形容肚子里的声音或物体滚动声。" },
-    { char: "咚", pinyin: "dōng", words: ["咕咚", "咚咚", "咕咚一声"], desc: "拟声词，形容重物落地或敲击声。" },
-    { char: "熟", pinyin: "shú", words: ["熟悉", "熟人", "熟练"], desc: "植物的果实等完全长成；程度深。" },
-    { char: "掉", pinyin: "diào", words: ["掉下", "掉队", "掉头"], desc: "落下；遗失。" },
-    { char: "吓", pinyin: "xià", words: ["吓人", "吓唬", "惊吓"], desc: "使害怕。" },
-    { char: "鹿", pinyin: "lù", words: ["小鹿", "梅花鹿", "鹿角"], desc: "哺乳动物，雄的有角。" },
-    { char: "逃", pinyin: "táo", words: ["逃跑", "逃走", "逃学"], desc: "为躲避不利环境而离开。" },
-    { char: "命", pinyin: "mìng", words: ["生命", "命令", "拼命"], desc: "生物体所具有的活动能力；上级对下级的指示。" },
-    { char: "象", pinyin: "xiàng", words: ["大象", "气象", "想象"], desc: "哺乳动物；形状；景象。" },
-    { char: "野", pinyin: "yě", words: ["野外", "野兽", "野花"], desc: "郊外；不受拘束。" },
-    { char: "拦", pinyin: "lán", words: ["拦住", "拦截", "阻拦"], desc: "阻挡；阻止。" },
-    { char: "领", pinyin: "lǐng", words: ["带领", "领导", "领带"], desc: "带，引；衣领。" },
-    { char: "您", pinyin: "nín", words: ["您好", "请您", "您们"], desc: "'你'的敬称。" },
-
-    // --- 21. 小壁虎借尾巴 ---
-    { char: "草", pinyin: "cǎo", words: ["草地", "草丛", "青草"], desc: "草本植物的通称。" },
-    { char: "房", pinyin: "fáng", words: ["房子", "房间", "书房"], desc: "住人或放东西的建筑物。" },
-    { char: "姐", pinyin: "jiě", words: ["姐姐", "姐妹", "小姐"], desc: "称同父母而年纪比自己大的女子。" },
-    { char: "妹", pinyin: "mèi", words: ["妹妹", "姐妹", "表妹"], desc: "称同父母而年纪比自己小的女子。" },
-    { char: "让", pinyin: "ràng", words: ["让路", "让座", "谦让"], desc: "把方便或好处给别人。" },
-    { char: "捉", pinyin: "zhuō", words: ["捉住", "捉虫", "捕捉"], desc: "用手抓住。" },
-    { char: "条", pinyin: "tiáo", words: ["一条", "条件", "面条"], desc: "细长的形状；量词。" },
-    { char: "爬", pinyin: "pá", words: ["爬行", "爬山", "爬树"], desc: "昆虫、爬行动物等贴着地面移动。" }
+    // 语文园地八：书写提示（农事字）
+    { char: "锄", pinyin: "chú", words: ["锄头", "锄草", "锄地"], desc: "松土除草的农具；用锄松土。", type: "writing" },
+    { char: "禾", pinyin: "hé", words: ["禾苗", "禾谷", "禾场"], desc: "谷类作物的幼苗；泛指庄稼。", type: "writing" },
+    { char: "日", pinyin: "rì", words: ["日光", "日记", "日出"], desc: "太阳；一天的时间；日期。", type: "writing" },
+    { char: "当", pinyin: "dāng", words: ["当时", "应当", "当地"], desc: "面对；主持；应该；充任。", type: "writing" }
 ];

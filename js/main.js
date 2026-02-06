@@ -551,11 +551,22 @@ const GradeSelector = {
         const grades = getGradeList();
         grades.forEach(g => {
             const isActive = SaveSystem.data.currentGrade === g.id;
+            const gradeData = (SaveSystem.data.gradeData && SaveSystem.data.gradeData[g.id]) ? SaveSystem.data.gradeData[g.id] : SaveSystem.defaultGradeData;
+            const vocabList = VOCABULARY_DATA[g.id] || [];
+            const totalWords = vocabList.length;
+            const learnedWords = Math.min((gradeData.stats?.totalWords || []).length, totalWords);
+            const progress = totalWords > 0 ? Math.floor((learnedWords / totalWords) * 100) : 0;
             const item = document.createElement('div');
             item.className = `grade-option${isActive ? ' active' : ''}`;
             item.innerHTML = `
                 <div class="grade-name">${g.name}</div>
                 <div class="grade-tag">${g.shortName}</div>
+                ${isActive ? `<div class="grade-current-badge">当前</div>` : ''}
+                <div class="grade-progress" style="--progress:${progress}%">
+                    <div class="grade-progress-track">
+                        <div class="grade-progress-fill"></div>
+                    </div>
+                </div>
             `;
             item.onclick = () => {
                 this.switchTo(g.id);
@@ -573,9 +584,17 @@ const GradeSelector = {
             return;
         }
         if (!SaveSystem.switchGrade(gradeId)) return;
+        AudioSys.playAdventure();
         this.resetState();
         Game.init();
         HomeDashboard.show();
+        const dash = document.getElementById('home-dashboard');
+        if (dash) {
+            dash.classList.remove('grade-switch-anim');
+            void dash.offsetWidth;
+            dash.classList.add('grade-switch-anim');
+            setTimeout(() => dash.classList.remove('grade-switch-anim'), 950);
+        }
         ReviewSystem.updateHome();
         this.render();
         this.close(false);
