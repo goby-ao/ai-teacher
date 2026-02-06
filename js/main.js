@@ -435,7 +435,7 @@ const SaveSystem = {
         historyMistakes: {},
         stats: { totalTime: 0, totalWords: [] },
         blindBox: { used: 0, success: 0, lastReset: '', bonus: 0 },
-        pinyinRain: { used: 0, lastReset: '' }
+        pinyinRain: { used: 0, lastReset: '', bonus: 0 }
     },
     data: {
         currentGrade: DEFAULT_GRADE, // 当前选中年级
@@ -471,9 +471,10 @@ const SaveSystem = {
         if (typeof gd.blindBox.success !== 'number') gd.blindBox.success = 0;
         if (typeof gd.blindBox.lastReset !== 'string') gd.blindBox.lastReset = '';
         if (typeof gd.blindBox.bonus !== 'number') gd.blindBox.bonus = 0;
-        if (!gd.pinyinRain) gd.pinyinRain = { used: 0, lastReset: '' };
+        if (!gd.pinyinRain) gd.pinyinRain = { used: 0, lastReset: '', bonus: 0 };
         if (typeof gd.pinyinRain.used !== 'number') gd.pinyinRain.used = 0;
         if (typeof gd.pinyinRain.lastReset !== 'string') gd.pinyinRain.lastReset = '';
+        if (typeof gd.pinyinRain.bonus !== 'number') gd.pinyinRain.bonus = 0;
         if (!gd.review || typeof gd.review !== 'object') {
             gd.review = { lastDate: '', todayList: [], todayDone: [], streaks: {}, rewarded: false };
         }
@@ -599,6 +600,7 @@ const SaveSystem = {
                 if (this.data.gradeData[g].pinyinRain) {
                     this.data.gradeData[g].pinyinRain.used = 0;
                     this.data.gradeData[g].pinyinRain.lastReset = today;
+                    this.data.gradeData[g].pinyinRain.bonus = 0;
                 }
             });
             setTimeout(() => Toast.show("📅 每日打卡！能量 +20"), 1000);
@@ -655,10 +657,18 @@ const SaveSystem = {
             const bbTotal = document.getElementById('bb-total-count');
             if (bbTotal) bbTotal.innerText = total;
         }
+        // 盲盒解锁状态（需到20关）
+        const bbCard = document.getElementById('blind-box-card');
+        if (bbCard) {
+            const unlocked = (gd.maxLevel || 1) >= 20;
+            bbCard.classList.toggle('locked', !unlocked);
+            const bbAction = document.getElementById('bb-action-pill');
+            if (bbAction) bbAction.innerText = unlocked ? '开启' : '锁定';
+        }
         // 更新拼音雨剩余次数
         const prRemain = document.getElementById('pr-remain-count');
         if (prRemain && gd.pinyinRain) {
-            const total = 15;
+            const total = 15 + (gd.pinyinRain.bonus || 0);
             const remain = Math.max(0, total - gd.pinyinRain.used);
             prRemain.innerText = remain;
             const prTotal = document.getElementById('pr-total-count');
@@ -1430,9 +1440,11 @@ const MiniQuiz = {
                 const bb = SaveSystem.gradeData.blindBox;
                 if (bb) {
                     bb.bonus = (bb.bonus || 0) + 1;
-                    SaveSystem.save();
                 }
-                Toast.show('连续答对 2 次，真正学会啦！盲盒次数 +1');
+                const pr = SaveSystem.gradeData.pinyinRain || (SaveSystem.gradeData.pinyinRain = { used: 0, lastReset: '', bonus: 0 });
+                pr.bonus = (pr.bonus || 0) + 1;
+                SaveSystem.save();
+                Toast.show('连续答对 2 次，真正学会啦！盲盒次数 +1，拼音雨次数 +1');
             } else {
                 SaveSystem.save();
                 Toast.show(`连续正确 ${gd.review.streaks[char]}/2`);
@@ -1946,12 +1958,13 @@ const Game = {
 
     openPinyinRain: function () {
         const gd = SaveSystem.gradeData;
+        if (!gd.pinyinRain) gd.pinyinRain = { used: 0, lastReset: '', bonus: 0 };
         if ((gd.maxLevel || 1) < 10) {
             Toast.show('拼音雨解锁条件：通关到第10关');
             return;
         }
-        if (!gd.pinyinRain) gd.pinyinRain = { used: 0, lastReset: '' };
-        if (gd.pinyinRain.used >= 15) {
+        const total = 15 + (gd.pinyinRain.bonus || 0);
+        if (gd.pinyinRain.used >= total) {
             Toast.show('今日次数用完啦，明天再来吧！');
             return;
         }
@@ -2096,6 +2109,12 @@ const Game = {
                     <div class="rain-badge-value">x${speedMul.toFixed(1)}</div>
                 </div>
             `;
+            const pinyinText = banner.querySelector('.rain-pinyin-text');
+            if (pinyinText) {
+                pinyinText.classList.remove('animate');
+                void pinyinText.offsetWidth;
+                pinyinText.classList.add('animate');
+            }
             const speedToggle = banner.querySelector('.rain-speed-toggle');
             if (speedToggle) {
                 speedToggle.onpointerdown = (e) => {
